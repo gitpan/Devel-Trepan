@@ -349,9 +349,6 @@ provides:
   Devel::Trepan::Util:
     file: lib/Devel/Trepan/Util.pm
     version: 0
-  Psh:
-    file: lib/Devel/Trepan/Psh.pm
-    version: 0
   TrepanPosition:
     file: lib/Devel/Trepan/Position.pm
     version: 0
