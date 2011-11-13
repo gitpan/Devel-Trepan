@@ -7,7 +7,7 @@ use warnings; no warnings 'redefine';
 # eval "require Psh::Strategy::Built_in";
 # shift @INC;
 
-use lib '../..';
+use rlib '../..';
 
 ## package Psh;
 
@@ -102,7 +102,7 @@ sub Psh::process
 		Psh::Util::print_debug_class('e',"(evl) Error: $@") if $@;
 		if (@elements) {
 			my $result;
-			($success,$result)= _evl(@elements);
+			($success,$result)= Psh::_evl(@elements);
 			Psh::Util::print_debug_class('s',"Success: $success\n");
 			$Psh::last_success_code= $success;
 			if ($result) {

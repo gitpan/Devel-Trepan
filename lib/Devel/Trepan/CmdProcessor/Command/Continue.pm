@@ -2,10 +2,10 @@
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
-use lib '../../../..';
+use rlib '../../../..';
 
-# require_relative '../running'
-# require_relative '../../app/breakpoint' # FIXME: possibly temporary
+# rlib '../running'
+# rlib '../../app/breakpoint' # FIXME: possibly temporary
 
 package Devel::Trepan::CmdProcessor::Command::Continue;
 

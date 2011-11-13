@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 #  Copyright (C) 2011 Rocky Bernstein <rockycpan.org>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -30,6 +31,11 @@ my $builder = Module::Build->new(
     license             => 'gpl',
     needs_compiler      => 0,
     release_status      => 'stable',
+    configure_requires  => { 'Module::Build' => 0.38,
+                             'ExtUtils::PkgConfig' => 0 },
+    build_requires => {
+        'String::Diff'                      => 0,
+    },
     requires => {
 	'perl'                              => '5.010',               
 	'Array::Columnize'                  => '0.3.5',
@@ -37,12 +43,12 @@ my $builder = Module::Build->new(
 	'Data::Dumper::Perltidy'            => 0,
         'Digest::SHA1'                      => 2.13,
         'Psh'                               => '1.8.0',
+        'rlib'                              => '0.02',
         'Syntax::Highlight::Perl::Improved' => 0,
         'Test::More'                        => 0,
-        'String::Diff'                      => 0,
         'version'                           => 0,
     },
-    sign                => 1,
+    sign                => ($ENV{PERL_MB_NOSIGN} ? 0 : 1),
     );
 
 #distclean : unlink lib/perliso9660.pm, lib/perlmmc.pm lib/perlcdio.pm

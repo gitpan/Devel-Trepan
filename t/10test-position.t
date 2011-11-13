@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib '../lib';
+use rlib '../lib';
 
 use Test::More 'no_plan';
 note( "Testing TrepanPosition" );

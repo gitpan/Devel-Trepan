@@ -1,7 +1,11 @@
-package Devel::Trepan::Core;
-use lib '../..';
+use rlib '../..';
 use Devel::Trepan::DB;
 use Devel::Trepan::CmdProcessor;
+use Devel::Trepan::WatchMgr;
+use Devel::Trepan::IO::Output;
+use Devel::Trepan::Interface::Script;
+
+package Devel::Trepan::Core;
 use vars qw(@ISA);
 @ISA = qw(DB);
 
@@ -16,11 +20,11 @@ sub add_startup_files($$) {
     }
 }
 
-# Not used by debugger, but here for
-# testing and OO completness.
 sub new() {
     my $class = shift;
-    my $self = {};
+    my $self = {
+	watch => Devel::Trepan::WatchMgr->new(), # List of watch expressions
+    };
     bless $self, $class;
 }
 
@@ -31,11 +35,11 @@ sub init() {
 
 # Called when debugger is ready for reading commands. Main
 # entry point.
-sub idle($$) 
+sub idle($$$) 
 {
-    my ($self, $after_eval) = @_;
+    my ($self, $event, $args) = @_;
     my $proc = $self->{proc};
-    $proc->process_commands($DB::caller, $after_eval, $DB::event);
+    $proc->process_commands($DB::caller, $event, $args);
 }
 
 sub output($) 
@@ -61,29 +65,53 @@ sub awaken($;$) {
     if (!defined($opts) && $ENV{'TREPANPL_OPTS'}) {
 	$opts = eval "$ENV{'TREPANPL_OPTS'}";
     }
-    my $cmdproc_opts = {
-	basename  =>  $opts->{basename},
-	highlight =>  $opts->{highlight},
-	traceprint => $opts->{traceprint}
-    };
-    my $cmdproc = Devel::Trepan::CmdProcessor->new(undef, __PACKAGE__, 
-						$cmdproc_opts);
-    $self->{proc} = $cmdproc;
-    $main::TREPAN_CMDPROC = $self->{proc};
-    $opts //= {};
-
-    for my $startup_file (@{$opts->{cmdfiles}}) {
-	add_startup_files($cmdproc, $startup_file);
+    my %cmdproc_opts = ();
+    for my $field (qw(basename highlight readline traceprint)) {
+	# print "field $field $opts->{$field}\n";
+	$cmdproc_opts{$field} = $opts->{$field};
     }
-    if (!$opts->{nx} && exists $opts->{initfile}) {
-	add_startup_files($cmdproc, $opts->{initfile});
+
+    if (my $batch_filename = $opts->{testing} // $opts->{batchfile}) {
+	if (-f $batch_filename) {
+	    if (-r $batch_filename)  {
+		my $output  = Devel::Trepan::IO::Output->new;
+		my $script_opts = 
+		    $opts->{testing} ? {abort_on_error => 0} : {};
+		my $script_intf = 
+		    Devel::Trepan::Interface::Script->new($batch_filename, 
+							  $output, 
+							  $script_opts);
+		my $cmdproc = Devel::Trepan::CmdProcessor->new([$script_intf], 
+							       $self, 
+							       \%cmdproc_opts);
+		$self->{proc} = $cmdproc;
+		$main::TREPAN_CMDPROC = $self->{proc};
+	    } else {
+		print STDERR "Command file '$batch_filename' is not readable.\n";
+	    }
+	} else {
+		print STDERR "Command file '$batch_filename' doesn't exist.\n"	}
+
+    } else {
+	my $cmdproc = Devel::Trepan::CmdProcessor->new(undef, $self, 
+						   \%cmdproc_opts);
+	$self->{proc} = $cmdproc;
+	$main::TREPAN_CMDPROC = $self->{proc};
+	$opts //= {};
+	
+	for my $startup_file (@{$opts->{cmdfiles}}) {
+	    add_startup_files($cmdproc, $startup_file);
+	}
+	if (!$opts->{nx} && exists $opts->{initfile}) {
+	    add_startup_files($cmdproc, $opts->{initfile});
+	}
     }
 }
 
 sub display_lists ($)
 {
     my $self = shift;
-    return $self->{proc}->{displays}->{list};
+    return $self->{proc}{displays}{list};
 }
     
 my $dbgr = __PACKAGE__->new();

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
-use lib '../../../..';
+use rlib '../../../..';
 
 package Devel::Trepan::CmdProcessor::Command::Action;
-use English;
+use English qw( -no_match_vars );
 
 use if !defined @ISA, Devel::Trepan::Condition ;
 use if !defined @ISA, Devel::Trepan::CmdProcessor::Command ;
@@ -13,7 +13,7 @@ unless (defined @ISA) {
     eval "use constant ALIASES    => qw(a);";
     eval "use constant CATEGORY   => 'breakpoints';";
     eval "use constant NEED_STACK => 0;";
-    eval "use constant SHORT_HELP => 'Set an action to be done before the line is executed.;";
+    eval "use constant SHORT_HELP => 'Set an action to be done before the line is executed.'";
 }
 
 use strict; use vars qw(@ISA); @ISA = @CMD_ISA;

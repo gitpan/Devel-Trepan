@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
-use lib '../../../..';
+use rlib '../../../..';
 
 package Devel::Trepan::CmdProcessor::Command::Display;
-use English;
+use English qw( -no_match_vars );
 
 use if !defined @ISA, Devel::Trepan::DB::Display ;
 use if !defined @ISA, Devel::Trepan::Condition ;
@@ -30,7 +30,8 @@ ${NAME} PERL-EXPRESSION
 Print value of expression PERL-EXPRESSON each time the program stops.
 
 Examples:
-   ${NAME} join(', ', @ARGV)
+   ${NAME} \$a  # Display variable \$a each time we enter debugger
+   ${NAME} join(', ', \@ARGV)  # show values of array \@ARGV
 
 See also "undisplay", "enable", and "disable".
 HELP

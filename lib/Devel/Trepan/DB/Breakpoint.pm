@@ -6,12 +6,12 @@ use Class::Struct;
 use strict;
 
 struct DBBreak => {
+    id          => '$', # breakpoint/action number 
+    enabled     => '$', # True if breakpoint or action is enabled
     type        => '$', # 'tbrkpt', 'brkpt' or 'action'
     condition   => '$', # Condition to evaluate or '1' fo unconditional
                         # if type is 'action' this is the action to run
-    id          => '$', # breakpoint/action number 
     hits        => '$', # Number of times the breakpoint/action hit
-    enabled     => '$', # True if breakpoint or action is enabled
     negate      => '$', # break/step if ... or until .. ?
     filename    => '$',
     line_num    => '$'
@@ -22,10 +22,14 @@ use feature 'switch';
 sub inspect($)
 {
     my $self = shift;
-    sprintf("file %s, line %s, type: %s, id %d, enabled: %d, negate %d, hits: %s, cond: %s",
+    sprintf("id %d, file %s, line %s, type: %s, enabled: %d, negate %s, hits: %s, cond: %s",
+	    $self->id, 
 	    $self->filename, $self->line_num,
-	    $self->type, $self->id, $self->enabled, $self->negate, 
-	    $self->hits, $self->condition);
+	    $self->type,
+	    $self->enabled, 
+	    $self->negate, 
+	    $self->hits, $self->condition
+	);
 };
 
 sub icon_char($)
@@ -41,7 +45,7 @@ sub icon_char($)
 package DB;
 use vars qw($brkpt $package $lineno $max_bp $max_action);
 use strict; use warnings; no warnings 'redefine';
-use English;
+use English qw( -no_match_vars );
 
 BEGIN {
     $DB::brkpt   = undef; # current breakpoint

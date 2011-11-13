@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
-use lib '../../../..';
+use rlib '../../../..';
 
 package Devel::Trepan::CmdProcessor::Command::Undisplay;
-use English;
+use English qw( -no_match_vars );
 
 use if !defined @ISA, Devel::Trepan::CmdProcessor::Command ;
 

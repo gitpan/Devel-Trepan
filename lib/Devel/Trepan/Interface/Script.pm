@@ -8,7 +8,7 @@ use Exporter;
 use IO::File;
 
 package Devel::Trepan::Interface::Script;
-use lib '../../..';
+use rlib '../../..';
 use Devel::Trepan::Interface;
 use Devel::Trepan::IO::Input;
 use Devel::Trepan::IO::StringArray;
@@ -86,7 +86,9 @@ sub errmsg($$;$)
 }
 
 sub is_interactive() { 0; }
-    
+sub has_completion() { 0; }
+sub has_gnu_readline($) { 0; }
+
 # Script interface to read a command. `prompt' is a parameter for 
 # compatibilty and is ignored.
 sub read_command($;$)

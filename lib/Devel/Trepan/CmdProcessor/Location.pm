@@ -3,11 +3,11 @@ use strict;
 use Exporter;
 use warnings;
 no warnings 'redefine'; no warnings 'once';
-use lib '../../..';
+use rlib '../../..';
 # require_relative '../app/default'
 
 package Devel::Trepan::CmdProcessor;
-use English;
+use English qw( -no_match_vars );
 use Cwd 'abs_path';
 
 use File::Basename;
@@ -24,6 +24,8 @@ my $EVENT2ICON = {
     'interrupt'      => 'oo',
     'signal'         => '!!',
     'return'         => '<-',
+    'trace'          => '==',
+    'watch'          => 'wa',
     'unknown'        => '?!',
 };
 

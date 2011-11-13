@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rockyb@rubyforge.net>
 use strict; use warnings; no warnings 'redefine';
-use English;
-use lib '../..';
+use English qw( -no_match_vars );
+use rlib '../..';
 use Devel::Trepan::DB::Breakpoint;
 package Devel::Trepan::BrkptMgr;
+
 
 sub new($$) 
 {
@@ -27,17 +28,23 @@ sub inspect($)
 {
     my $self = shift;
     my $str = '';
-    for my $brkpt (@{$self->{list}}) {
+    for my $brkpt ($self->list) {
 	next unless defined $brkpt;
 	$str .= $brkpt->inspect . "\n";
     }
     $str;
 }    
 
+sub list($) 
+{
+    my $self = shift;
+    @{$self->{list}}
+}
+
 # Remove all breakpoints that we have recorded
 sub DESTROY() {
     my $self = shift;
-    for my $bp (@{$self->{list}}) {
+    for my $bp ($self->list) {
         $self->delete_by_brkpt($bp) if defined($bp);
     }
     $self->{clear};
@@ -148,16 +155,16 @@ my $dbgr = Devel::Trepan::Core->new;
 my $brkpts = Devel::Trepan::BrkptMgr->new($dbgr);
 bp_status($brkpts, 0);
 my $brkpt1 = DBBreak->new(
-    type=>'brkpt', condition=>'1', id=>1, hits => 0, enbled => 1,
-    negate => 0
+    type=>'brkpt', condition=>'1', id=>1, hits => 0, enabled => 1,
+    negate => 0, filename => __FILE__, line_num => __LINE__
     );
 
 $brkpts->add($brkpt1);
 bp_status($brkpts, 1);
 
 my $brkpt2 = DBBreak->new(
-    type=>'brkpt', condition=>'x>5', id=>2, hits => 0, enbled => 0,
-    negate => 0
+    type=>'brkpt', condition=>'x>5', id=>2, hits => 0, enabled => 0,
+    Negate => 0, filename => __FILE__, line_num => __LINE__
     );
 $brkpts->add($brkpt2);
 bp_status($brkpts, 2);
@@ -166,8 +173,8 @@ $brkpts->delete_by_brkpt($brkpt1);
 bp_status($brkpts, 3);
 
 my $brkpt3 = DBBreak->new(
-    type=>'brkpt', condition=>'y eq x', id=>3, hits => 0, enbled => 1,
-    negate => 1
+    type=>'brkpt', condition=>'y eq x', id=>3, hits => 0, enabled => 1,
+    negate => 1, filename => __FILE__, line_num => __LINE__
     );
 $brkpts->add($brkpt3);
 bp_status($brkpts, 4);

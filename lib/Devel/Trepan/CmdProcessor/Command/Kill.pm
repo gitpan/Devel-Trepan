@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 use feature ":5.10";  # Includes "state" feature.
 use warnings; no warnings 'redefine';
-use lib '../../../..';
+use rlib '../../../..';
 # use '../../app/complete'
 
 package Devel::Trepan::CmdProcessor::Command::Kill;
 
 use if !defined @ISA, Devel::Trepan::CmdProcessor::Command ;
 
-use strict;
 use vars qw(@ISA);
 
 unless (defined @ISA) {
@@ -17,6 +16,7 @@ unless (defined @ISA) {
     eval "use constant CATEGORY => 'running'";
     eval "use constant SHORT_HELP => 'Send this process a POSIX signal'";
 }
+use strict; 
 
 @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
@@ -84,7 +84,7 @@ sub run($$) {
     }
     if (kill(0, $$)) {
 	# Force finalization on interface.
-	$self->{proc}->{interfaces} = [] if 
+	$self->{proc}{interfaces} = [] if 
 	    'KILL' eq $sig || 9 eq $sig || -9 eq $sig;
 	if (kill($sig, $$)) {
 	    $self->msg("kill ${sig} successfully sent to process $$");

@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
 use strict; use warnings;
-use lib '../lib';
+use rlib '../lib';
 
 use Test::More 'no_plan';
 note( "Testing Devel::Trepan::DB::LineCache" );
 
 BEGIN {
-    use English;
+    use English qw( -no_match_vars );
     $PERLDB |= 0x400;
     use_ok( 'Devel::Trepan::DB::LineCache' );
 }

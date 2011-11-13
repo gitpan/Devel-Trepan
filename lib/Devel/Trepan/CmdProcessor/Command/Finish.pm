@@ -2,10 +2,10 @@
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
-use lib '../../../..';
+use rlib '../../../..';
 
-# require_relative '../running'
-# require_relative '../../app/breakpoint' # FIXME: possibly temporary
+# rlib '../running'
+# rlib '../../app/breakpoint' # FIXME: possibly temporary
 
 package Devel::Trepan::CmdProcessor::Command::Finish;
 
@@ -58,7 +58,7 @@ sub run($$) {
 	$level_count = $count;
     }
 
-    $self->{proc}->{leave_cmd_loop} = 1;
+    $self->{proc}{leave_cmd_loop} = 1;
     $self->{dbgr}->finish($level_count);
 }
 

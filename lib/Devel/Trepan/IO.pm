@@ -12,7 +12,7 @@
 
 use strict; use warnings;
 use Exporter;
-use lib '../..';
+use rlib '../..';
 
 package Devel::Trepan::IO::InputBase;
 
@@ -50,7 +50,7 @@ sub close($) {
     $self->{eof} = 1;
 }
 
-sub have_gnu_readline() {
+sub want_gnu_readline() {
     0;
 }
 

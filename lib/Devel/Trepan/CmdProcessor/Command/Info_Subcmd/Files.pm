@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rockb@cpan.org>
 use warnings; no warnings 'redefine'; no warnings 'once';
-use lib '../../../../..';
+use rlib '../../../../..';
 
 package Devel::Trepan::CmdProcessor::Command::Info::Files;
 use Cwd 'abs_path';
@@ -88,7 +88,7 @@ sub run($$)
     }
     my $filename = shift @args;
     if ($filename eq '.') {
-        my $frame_file = $proc->{frame}->{file};
+        my $frame_file = $proc->{frame}{file};
 	$filename = DB::LineCache::map_file($frame_file) ||
 	    abs_path($frame_file);
     }

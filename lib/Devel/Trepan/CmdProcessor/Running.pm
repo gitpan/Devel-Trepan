@@ -3,11 +3,11 @@
 use strict; use warnings;
 
 use feature 'switch';
-use lib '../../..';
+use rlib '../../..';
 
 use Devel::Trepan::Position;
 package Devel::Trepan::CmdProcessor;
-use English;
+use English qw( -no_match_vars );
 
 
 
@@ -120,7 +120,7 @@ sub continue($$) {
     if (scalar @{$args} != 1) {
 	# Form is: "continue"
 	# my $(line_number, $condition, $negate) = 
-	#    $self->breakpoint_position($self->{proc}->{cmd_argstr}, 0);
+	#    $self->breakpoint_position($self->{proc}{cmd_argstr}, 0);
 	# return unless iseq && vm_offset;
 	# $bp = $self->.breakpoint_offset($condition, $negate, 1);
 	#return unless bp;
@@ -130,7 +130,16 @@ sub continue($$) {
     };
     $self->{DB_running} = 1;
     $self->{DB_single} = 0;
+}
 
+sub evaluate($$$) {
+    my ($self, $expr, $opts) = @_;
+    no warnings 'once';
+    $DB::eval_str = $self->{dbgr}->evalcode($expr);
+    $DB::eval_opts = $opts;
+    $DB::result_opts = $opts;
+    $self->{DB_running} = 2;
+    $self->{leave_cmd_loop} = 1;
 }
 
 sub next($$) 

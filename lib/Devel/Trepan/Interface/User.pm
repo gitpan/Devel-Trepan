@@ -7,7 +7,7 @@ use warnings; no warnings 'once'; use strict;
 use Exporter;
 
 package Devel::Trepan::Interface::User;
-use lib '../../..';
+use rlib '../../..';
 use vars qw(@EXPORT @ISA $HAVE_READLINE);
 @ISA = qw(Devel::Trepan::Interface Exporter);
 
@@ -42,7 +42,7 @@ sub new($;$$$) {
     #          else
     #            Trepan::UserInput.open(inp, {:readline => opts[:readline]})
     #          end
-    if ($self->{input}->{gnu_readline}) {
+    if ($self->{input}{gnu_readline}) {
 	if ($self->{opts}{complete}) {
 	    my $attribs = $inp->{readline}->Attribs;
 	    $attribs->{attempted_completion_function} = $self->{opts}{complete};
@@ -55,18 +55,18 @@ sub new($;$$$) {
 sub add_history($$)
 {
     my ($self, $command) = @_;
-    return unless ($self->{input}->{readline});
-    $self->{input}->{readline}->add_history($command) ;
+    return unless ($self->{input}{readline});
+    $self->{input}{readline}->add_history($command) ;
     my $now = localtime;
-    $self->{input}->{readline}->add_history_time($now);
+    $self->{input}{readline}->add_history_time($now);
 }
 
 sub remove_history($;$)
 {
     my ($self, $which) = @_;
-    return unless ($self->{input}->{readline});
-    $which //= $self->{input}->{readline}->where_history();
-    $self->{input}->{readline}->remove_history($which);
+    return unless ($self->{input}{readline});
+    $which //= $self->{input}{readline}->where_history();
+    $self->{input}{readline}->remove_history($which);
 }
 
 sub is_closed($) 
@@ -114,25 +114,25 @@ sub read_history($)
     }
     $self->{histsize} //= ($ENV{'HISTSIZE'} ? $ENV{'HISTSIZE'} : $opts{histsize});
     if ( -f $self->{histfile} ) {
-	$self->{input}->{readline}->StifleHistory($self->{histsize});
-	$self->{input}->{readline}->ReadHistory($self->{histfile});
+	$self->{input}{readline}->StifleHistory($self->{histsize});
+	$self->{input}{readline}->ReadHistory($self->{histfile});
     }
 }
 
 sub save_history($)
 {
     my $self = shift;
-    if ($self->{histfile} && $self->{opts}->{history_save} && $self->has_gnu_readline &&
-	$self->{input}->{readline}) {
-    	$self->{input}->{readline}->StifleHistory($self->{opts}->{histsize});
-    	$self->{input}->{readline}->WriteHistory($self->{histfile});
+    if ($self->{histfile} && $self->{opts}{history_save} && $self->want_gnu_readline &&
+	$self->{input}{readline}) {
+    	$self->{input}{readline}->StifleHistory($self->{opts}{histsize});
+    	$self->{input}{readline}->WriteHistory($self->{histfile});
     }
 }
 
 # sub DESTROY($) 
 # {
 #     my $self = shift;
-#     if ($HAVE_GNU_READLINE) {
+#     if ($self->want_gnu_readline) {
 #     	$self->save_history;
 #     }
 #     Devel::Trepan::Interface::DESTROY($self);
@@ -147,13 +147,13 @@ sub is_interactive($)
 sub has_completion($)
 {
     my $self = shift;
-    $self->{input}->{gnu_readline};
+    $self->{input}{gnu_readline};
 }
 
-sub has_gnu_readline($)
+sub want_gnu_readline($)
 {
     my $self = shift;
-    $self->{input}->{gnu_readline};
+    defined($self->{opts}{readline}) && $self->{input}{gnu_readline};
 }
 
 sub read_command($;$) {
@@ -165,7 +165,7 @@ sub read_command($;$) {
 sub readline($;$) {
     my($self, $prompt)  = @_;
     $self->{output}->flush;
-    if (defined $self->{opts}{readline}) {
+    if ($self->want_gnu_readline) {
 	$self->{input}->readline($prompt);
     } else { 
 	$self->{output}->write($prompt) if defined($prompt) && $prompt;
@@ -177,7 +177,7 @@ sub set_completion($$)
 {
     my ($self, $completion_fn) = @_;
     return unless $self->has_completion;
-    my $attribs = $self->{input}->{readline}->Attribs;
+    my $attribs = $self->{input}{readline}->Attribs;
     $attribs->{attempted_completion_function} = $completion_fn;
 }
 

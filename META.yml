@@ -2,11 +2,13 @@
 abstract: "Modular Perl Debugger (akin to Ruby \"Trepanning\" Debuggers)."
 author:
   - 'Rocky Bernstein <rocky@cpan.org>'
-build_requires: {}
+build_requires:
+  String::Diff: 0
 configure_requires:
+  ExtUtils::PkgConfig: 0
   Module::Build: 0.38
 dynamic_config: 1
-generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112621'
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112150'
 license: open_source
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -24,7 +26,7 @@ provides:
     version: 0
   Devel::Trepan:
     file: lib/Devel/Trepan.pm
-    version: v0.1.0
+    version: v0.1.1
   Devel::Trepan::BrkptMgr:
     file: lib/Devel/Trepan/BrkptMgr.pm
     version: 0
@@ -102,6 +104,9 @@ provides:
     version: 0
   Devel::Trepan::CmdProcessor::Command::Info::Return:
     file: lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Return.pm
+    version: 0
+  Devel::Trepan::CmdProcessor::Command::Info::Watch:
+    file: lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Watch.pm
     version: 0
   Devel::Trepan::CmdProcessor::Command::Kill:
     file: lib/Devel/Trepan/CmdProcessor/Command/Kill.pm
@@ -289,6 +294,9 @@ provides:
   Devel::Trepan::CmdProcessor::Command::Up:
     file: lib/Devel/Trepan/CmdProcessor/Command/Up.pm
     version: 0
+  Devel::Trepan::CmdProcessor::Command::Watch:
+    file: lib/Devel/Trepan/CmdProcessor/Command/Watch.pm
+    version: 0
   Devel::Trepan::CmdProcessor::Hook:
     file: lib/Devel/Trepan/CmdProcessor/Hook.pm
     version: 0
@@ -345,12 +353,18 @@ provides:
     version: 0
   Devel::Trepan::Options:
     file: lib/Devel/Trepan/Options.pm
-    version: 0.10
+    version: v0.1.1
   Devel::Trepan::Util:
     file: lib/Devel/Trepan/Util.pm
     version: 0
+  Devel::Trepan::WatchMgr:
+    file: lib/Devel/Trepan/WatchMgr.pm
+    version: 0
   TrepanPosition:
     file: lib/Devel/Trepan/Position.pm
+    version: 0
+  WatchPoint:
+    file: lib/Devel/Trepan/WatchMgr.pm
     version: 0
 requires:
   Array::Columnize: v0.3.5
@@ -358,11 +372,11 @@ requires:
   Digest::SHA1: 2.13
   ExtUtils::PkgConfig: 1.03
   Psh: v1.8.0
-  String::Diff: 0
   Syntax::Highlight::Perl::Improved: 0
   Test::More: 0
   perl: 5.010
+  rlib: 0.02
   version: 0
 resources:
   license: http://opensource.org/licenses/gpl-license.php
-version: v0.1.0
+version: v0.1.1

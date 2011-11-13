@@ -4,12 +4,12 @@
 # Documentation is at the __END__
 #
 
-use lib '../..';
+use rlib '../..';
 
 package DB;
 use feature 'switch';
 use warnings; no warnings 'redefine';
-use English;
+use English qw( -no_match_vars );
 
 use vars qw($usrctxt $running $caller 
             $event @ret $ret $return_value @return_value
@@ -70,7 +70,7 @@ BEGIN {
 
     $DB::event = undef;  # The reason we have entered the debugger
     
-    $DB::VERSION = '1.03rocky';
+    $DB::VERSION = '1.03';
     
     # initialize private globals to avoid warnings
     
@@ -144,12 +144,35 @@ sub DB {
 
     # we need to check for pseudofiles on Mac OS (these are files
     # not attached to a filename, but instead stored in Dev:Pseudo)
-    if ( $^O eq 'MacOS' && $#dbline < 0 ) {
+    if ( $OSNAME eq 'MacOS' && $#dbline < 0 ) {
         $filename_ini = $filename = 'Dev:Pseudo';
         *dbline = $main::{ '_<' . $filename };
     }
     $DB::event = undef;
     $DB::brkpt = undef;
+
+    # Test watch expressions;
+    my $watch_triggered = undef;
+    for my $c (@clients) {
+	my $n = 0;
+	my @list= @{$c->{watch}->{list}};
+	for my $wp (@list) {
+	    next unless $wp->enabled;
+	    ## FIXME: eval_opts should be a parameter
+	    $eval_opts->{return_type} = '$';
+	    my $new_val = &DB::eval_with_return($usrctxt, $wp->expr, @saved);
+	    my $old_val = $wp->old_value;
+	    next if !defined($old_value) && !defined($new_val);
+	    my $not_same = !defined($old_val) || !defined($new_val);
+            if ( $not_same || $new_val ne $wp->old_value ) {
+                # Yep! Record change.
+                $wp->current_val($new_val);
+                $wp->hits($wp->hits+1);
+                $watch_triggered = $wp;
+		last;
+	    }
+	}
+    }
 
     # Accumulate action events.
     my @action = ();
@@ -186,17 +209,21 @@ sub DB {
 	    }
 	}
     }
-    if ($DB::signal) {
+    if ($watch_triggered) {
+	$event = 'watch';
+    } elsif ($DB::signal) {
 	$event ||= 'signal';
     } elsif ($DB::single & RETURN_EVENT) {
 	$event ||= 'return';
+    } elsif ($DB::trace ) {
+	$event ||= 'trace';
     } elsif ($DB::trace  || $DB::single) {
 	$event ||= 'line';
     } else {
 	$event = 'unknown';
     }
     
-    if ($DB::single || $DB::trace || $DB::signal) {
+    if ($DB::single || $DB::trace || $DB::signal || $event eq 'watch') {
 	$DB::subname = ($DB::sub =~ /\'|::/) ? $DB::sub : "${DB::package}::$DB::sub"; #';
 	loadfile($DB::filename, $DB::lineno);
     }
@@ -205,7 +232,7 @@ sub DB {
 	my $hits = $action->hits + 1;
 	$action->hits($hits);
     }
-    if ($DB::single || $DB::signal) {
+    if ($DB::single || $DB::signal || $watch_triggered) {
 	_warnall($#stack . " levels deep in subroutine calls.\n") if $DB::single & 4;
 	$DB::single = 0;
 	$DB::signal = 0;
@@ -220,13 +247,14 @@ sub DB {
 		for my $disp (@$display_aref) {
 		    next unless $disp && $disp->enabled;
 		    # FIXME: allow more than just scalar contexts.
-		    my $eval_result = &DB::eval_with_return($usrctxt, $disp->arg, @saved);
+		    my $eval_result =  &DB::eval_with_return($usrctxt, $disp->arg, @saved);
 		    my $mess = sprintf("%d: $eval_result", $disp->number);
 		    $c->output($mess);
 		}
 
 		# call client event loop; must not block
-		$c->idle($after_eval);
+		$event = 'after_eval' if $after_eval;
+		$c->idle($event, $watch_triggered);
 		$after_eval = 0;
 		if ($running == 2 && defined($eval_str)) { 
 		    # client wants something eval-ed
@@ -595,7 +623,7 @@ DB - programmatic interface to the Perl debugging API
     # Write your routine so that it doesn't block.
 
     CLIENT->init()          # called when debug API inits itself
-    CLIENT->idle()          # while stopped (can be a client event loop)
+    CLIENT->idle(BOOL, EVENT, ARGS)  # while stopped (can be a client event loop)
     CLIENT->cleanup()       # just before exit
     CLIENT->output(STRING)   # called to print any output that API must show
     CLIENT->warning(STRING) # called to print any warning output that API 
@@ -765,11 +793,11 @@ Called after debug API inits itself.
 
 Called when execution stops (w/ args file, line).
 
-=item CLIENT->idle(BOOLEAN)
+=item CLIENT->idle(BOOLEAN, EVENT, ARGS)
 
 Called while stopped (can be a client event loop or REPL). If called
 after the idle program requested an eval to be performed, BOOLEAN will be
-true. False otherwise. See evalcode below
+true. False otherwise. See evalcode below. ARGS are any 
 
 =item CLIENT->evalcode(STRING)
 

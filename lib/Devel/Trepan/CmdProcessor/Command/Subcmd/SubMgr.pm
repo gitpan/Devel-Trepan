@@ -5,7 +5,7 @@
 
 use warnings; no warnings 'redefine';
 
-use lib '../../../../..';
+use rlib '../../../../..';
 package Devel::Trepan::CmdProcessor::Command::SubcmdMgr;
 
 use File::Basename;
@@ -135,7 +135,7 @@ sub lookup($$;$)
     my ($self, $subcmd_prefix, $use_regexp) = @_;
     $use_regexp = 0 if scalar @_ < 3;
     my $compare;
-    if (!$self->{proc}->{settings}->{abbrev}) {
+    if (!$self->{proc}{settings}{abbrev}) {
 	$compare = sub($) { my $name = shift; $name eq $subcmd_prefix};
     } elsif ($use_regexp) {
 	$compare = sub($) { my $name = shift; $name =~ /^${subcmd_prefix}/};

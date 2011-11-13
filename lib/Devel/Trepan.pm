@@ -1,14 +1,14 @@
 #!/usr/bin/env perl 
 use feature ":5.10";  
 use vars qw($TREPAN_CMDPROC);
+use rlib '..';
 
 package Devel::Trepan;
 use strict;
 use warnings;
 use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION);
-use version; $VERSION = '0.1.0'; # 0.1.0 to match initial Rubinius version
+use version; $VERSION = '0.1.1';
 use Exporter;
-use lib '..';
 
 use Devel::Trepan::Core;
 

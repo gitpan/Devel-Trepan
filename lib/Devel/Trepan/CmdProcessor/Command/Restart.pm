@@ -2,10 +2,10 @@
 # Code adapted from Perl 5's perl5db.pl
 # -*- coding: utf-8 -*-
 use warnings; no warnings 'redefine';
-use lib '../../../..';
+use rlib '../../../..';
 
 package Devel::Trepan::CmdProcessor::Command::Restart;
-use English;
+use English qw( -no_match_vars );
 
 use if !defined @ISA, Devel::Trepan::CmdProcessor::Command ;
 unless (defined(@ISA)) {

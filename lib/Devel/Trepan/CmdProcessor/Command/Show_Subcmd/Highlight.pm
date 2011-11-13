@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine'; no warnings 'once';
-use lib '../../../../..';
+use rlib '../../../../..';
 
 package Devel::Trepan::CmdProcessor::Command::Show::Highlight;
 
@@ -18,7 +18,7 @@ sub run($$)
 {
     my ($self, $args) = @_;
     my $proc = $self->{proc};
-    my $val = 'term' eq $proc->{settings}->{highlight};
+    my $val = 'term' eq $proc->{settings}{highlight};
     my $onoff = $self->show_onoff($val);
     my $msg = sprintf "%s is %s.", $self->{name}, $onoff;
     $proc->msg($msg);

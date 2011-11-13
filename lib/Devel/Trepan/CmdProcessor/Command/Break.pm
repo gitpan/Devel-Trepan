@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
-use lib '../../../..';
+use rlib '../../../..';
 
 # require_relative '../../app/condition'
 
 package Devel::Trepan::CmdProcessor::Command::Break;
-use English;
+use English qw( -no_match_vars );
 use if !defined @ISA, Devel::Trepan::CmdProcessor::Command;
 unless (defined(@ISA)) {
-    eval "use constant ALIASES    => qw(b);";
-    eval "use constant CATEGORY   => 'breakpoints';";
-    eval "use constant SHORT_HELP => 'Set a breakpoint';";
+    eval "use constant ALIASES    => qw(b)";
+    eval "use constant CATEGORY   => 'breakpoints'";
+    eval "use constant SHORT_HELP => 'Set a breakpoint'";
 }
 
 use strict; use vars qw(@ISA); @ISA = @CMD_ISA;
@@ -85,7 +85,8 @@ sub run($$) {
 	    }
 	}
 	$bp = $self->{dbgr}->set_break($filename, $line_or_fn, $condition);
-	if ($bp) {
+    }
+    if ($bp) {
 	    my $prefix = $bp->type eq 'tbrkpt' ? 
 		'Temporary breakpoint' : 'Breakpoint' ;
 	    my $id = $bp->id;
@@ -93,7 +94,6 @@ sub run($$) {
 	    my $line_num = $bp->line_num;
 	    $proc->{brkpts}->add($bp);
 	    $proc->msg("$prefix $id set in $filename at line $line_num");
-	}
     }
 }
 

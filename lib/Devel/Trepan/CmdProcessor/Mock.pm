@@ -3,7 +3,7 @@ use strict;
 use Exporter;
 use warnings;
 
-use lib '../../..';
+use rlib '../../..';
 use Devel::Trepan::CmdProcessor;
 use Devel::Trepan::Interface::User;
 use Devel::Trepan::Core;

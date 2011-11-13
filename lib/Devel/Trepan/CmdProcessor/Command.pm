@@ -7,7 +7,7 @@ use Array::Columnize;
 use Carp ();
 use File::Basename;
 
-use lib '../../..';
+use rlib '../../..';
 use if !defined Devel::Trepan::CmdProcessor, Devel::Trepan::CmdProcessor;
 use strict;
 package Devel::Trepan::CmdProcessor::Command;
@@ -152,7 +152,7 @@ sub section($$;$) {
 
 sub settings($) {
     my ($self) = @_;
-    $self->{proc}->{settings};
+    $self->{proc}{settings};
 }
 
 sub short_help($) {

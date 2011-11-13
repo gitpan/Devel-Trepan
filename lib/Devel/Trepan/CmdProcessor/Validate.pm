@@ -7,7 +7,7 @@ use strict; use warnings;
 use Exporter;
 
 use feature 'switch';
-use lib '../../..';
+use rlib '../../..';
 
 package Devel::Trepan::CmdProcessor;
 

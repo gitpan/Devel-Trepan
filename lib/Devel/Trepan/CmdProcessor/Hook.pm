@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org> 
 use strict; use warnings;
-use lib '../../..';
+use rlib '../../..';
 
 use Class::Struct;
 use Time::HiRes;
@@ -48,7 +48,7 @@ sub insert($$$$)
     my $insert_loc;
     my @list = $self->{list};
     for ($insert_loc=0; $insert_loc < $#list; $insert_loc++) {
-	my $entry = $self->{list}->[$insert_loc];
+	my $entry = $self->{list}[$insert_loc];
 	if ($priority > $entry->priority) {
 	    last;
 	}

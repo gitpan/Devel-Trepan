@@ -2,7 +2,7 @@
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
-use lib '../../../..';
+use rlib '../../../..';
 
 # Our local modules
 ## use Devel::Trepan::Options; or is it default
@@ -93,21 +93,21 @@ sub run($$)
     # require Enbugger; Enbugger->stop;
     my $filename = $args->[-1];
     
-    my $expanded_file = abs_path(glob($filename));
-    unless (defined $expanded_file && -f $expanded_file) {
+    my $expanded_filename = abs_path(glob($filename));
+    unless (defined $expanded_filename && -f $expanded_filename) {
 	my $mess = sprintf("Debugger command file '%s' is not found", $filename);
 	$self->errmsg($mess);
 	return 0;
     }
-    unless(-r $expanded_file) {
-	my $mess = sprintf("Debugger command file '%s' (%s) is not a readable file", $filename, $expanded_file);
+    unless(-r $expanded_filename) {
+	my $mess = sprintf("Debugger command file '%s' (%s) is not a readable file", $filename, $expanded_filename);
 	$self->errmsg($mess);
 	return 0;
     }
     
     # Push a new debugger interface.
-    my $script_intf = Devel::Trepan::Interface::Script->new($expanded_file, 
-							  $output, $options);
+    my $script_intf = Devel::Trepan::Interface::Script->new($expanded_filename, 
+							    $output, $options);
     push @{$intf}, $script_intf;
 }
 

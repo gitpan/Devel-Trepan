@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org> 
+package Devel::Trepan::CmdProcessor;
+use English qw( -no_match_vars );
 use feature ":5.10";  # Includes "state" feature.
 use Exporter;
 use feature 'switch';
@@ -8,7 +10,7 @@ use warnings; use strict;
 # Showing eval results can be done using either data dump package.
 require Data::Dumper; require Data::Dumper::Perltidy;
 
-use lib '../..';
+use rlib '../..';
 require Devel::Trepan::BrkptMgr;
 require Devel::Trepan::DB::Display;
 require Devel::Trepan::Interface::User;
@@ -27,8 +29,6 @@ use strict;
 use warnings;
 no warnings 'redefine';
 
-package Devel::Trepan::CmdProcessor;
-use English;
 use Devel::Trepan::Util qw(hash_merge uniq_abbrev);
 
 use vars qw(@EXPORT @ISA $eval_result);
@@ -71,13 +71,18 @@ sub new($;$$$) {
     $self->{last_command}   = undef;
     $self->{leave_cmd_loop} = undef;
     $self->{settings}       = hash_merge($settings, DEFAULT_SETTINGS());
+
+    # Initial watch point expr value used when a new watch point is set.
+    # Set in 'watch' command, and reset here after we get the value back.
+    $self->{set_wp}         = undef;
+
     $self->{step_count}     = 0;
     $self->load_cmds_initialize;
     $self->running_initialize;
     $self->hook_initialize;
     $self->{unconditional_prehooks}->insert_if_new(10, 
-						   $self->{trace_hook}->[0],
-						   $self->{trace_hook}->[1]
+						   $self->{trace_hook}[0],
+						   $self->{trace_hook}[1]
 	) if $self->{settings}{traceprint};
 
     if ($intf->has_completion) {
@@ -202,11 +207,11 @@ sub process_command_and_quit($)
 }
 
 # This is the main entry point.
-sub process_commands($$$)
+sub process_commands($$$;$)
 {
-    my ($self, $frame, $is_eval, $event) = @_;
+    my ($self, $frame, $event, $arg) = @_;
     state $last_i = 0;
-    if ($is_eval) {
+    if ($event eq 'after_eval') {
 	my $val_str;
 	my $prefix="\$DB::D[$last_i] =";
 
@@ -259,6 +264,11 @@ sub process_commands($$$)
 		$self->msg("$prefix ${val_str}");
 	    }
 	}
+
+	if (defined($self->{set_wp})) {
+	    $self->{set_wp}->old_value($DB::eval_result);
+	    $self->{set_wp} = undef;
+	}
 	
 	$DB::eval_opts->{return_type} = '';
 	$DB::eval_result = undef;
@@ -267,7 +277,21 @@ sub process_commands($$$)
 	$self->frame_setup($frame);
 	$self->{event} = $event;
 
-	
+	if ($event eq 'watch') {
+	    my $msg = sprintf("Watchpoint %s: `%s' changed", 
+			      $arg->id, $arg->expr);
+	    $self->section($msg);
+	    my $old_value = defined($arg->old_value) ? $arg->old_value 
+		: 'undef';
+	    $msg = sprintf("old value\t%s", $old_value);
+	    $self->msg($msg);
+	    my $new_value = defined($arg->current_val) ? $arg->current_val
+		: 'undef';
+	    $msg = sprintf("new value\t%s", $new_value);
+	    $self->msg($msg);
+	    $arg->old_value($arg->current_val);
+	}
+
 	$self->{unconditional_prehooks}->run;
 	if (index($self->{event}, 'brkpt') < 0) {
 	    if ($self->is_stepping_skip()) {
@@ -339,7 +363,7 @@ sub run_command($$)
 	    last unless $self->{macros}{$macro_cmd_name};
 	    pop @args;
 	    my $macro_expanded = 
-		$self->{macros}{$macro_cmd_name}->[0]->(@args);
+		$self->{macros}{$macro_cmd_name}[0]->(@args);
 #	    $self->msg($macro_expanded) if $self->{settings}{debugmacro};
 	    if (ref $macro_expanded eq 'ARRAY' #  && 
 #		current_command.all? {|val| val.is_a?(String)}
@@ -429,7 +453,7 @@ unless (caller) {
     print $sep;
     $proc->run_command("help help;; kill 100");
     # Note kill 100 is in queue - not run yet.
-    if (scalar(@ARGV) > 0 && $proc->{interfaces}->[-1]->is_interactive) {
+    if (scalar(@ARGV) > 0 && $proc->{interfaces}[-1]->is_interactive) {
 	$proc->process_command_and_quit; # Handle's queued command
 	$proc->process_command_and_quit;
 	print $sep;
