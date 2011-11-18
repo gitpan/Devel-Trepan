@@ -8,10 +8,11 @@ use Class::Struct;
 use strict;
 
 struct DBDisplay => {
-    number      => '$', # breakpoint/action number 
-    enabled     => '$', # True if breakpoint or action is enabled
+    number      => '$', # display number 
+    enabled     => '$', # True if display is enabled
     arg         => '$', # What to display
-    fmt         => '$'  # Format to use in display
+    fmt         => '$', # Format to use in display
+    return_type => '$'  # Kind of value expected in return
 };
 
 package DBDisplay;
@@ -97,13 +98,18 @@ sub delete_by_display($$)
     return undef;
 }
 
-sub add($$)
+sub add($$;$)
 {
-    my ($self, $display) = @_;
+    my ($self, $display,$return_type) = @_;
     $self->{max}++;
+    $return_type //= '$';
     my $number = $self->{max};
     my $disp = DBDisplay->new(
-	number=>$number, enabled => 1, arg => $display, fmt => '$');
+	number      => $number, 
+	enabled     => 1, 
+	arg         => $display, 
+	fmt         => '$',
+	return_type => $return_type);
     push @{$self->{list}}, $disp;
     return $disp;
 }
@@ -162,51 +168,32 @@ unless (caller) {
 	print "--- ${i} ---\n";
     }
 
-require Devel::Trepan::Core;
-my $dbgr = Devel::Trepan::Core->new;
-my $displays = Devel::Trepan::DisplayMgr->new($dbgr);
-display_status($displays, 0);
-my $display1 = DBDisplay->new(
-    number=>1, enabled => 1, arg => '$dbgr', fmt => '$'
+    require Devel::Trepan::Core;
+    my $dbgr = Devel::Trepan::Core->new;
+    my $displays = Devel::Trepan::DisplayMgr->new($dbgr);
+    display_status($displays, 0);
+    my $display1 = DBDisplay->new(
+	number=>1, enabled => 1, arg => '$dbgr', fmt => '$'
     );
 
-$displays->add($display1);
-display_status($displays, 1);
+    $displays->add($display1);
+    display_status($displays, 1);
 
-my $display2 = DBDisplay->new(
-    number=>2, enabled => 0, arg => '$displays', fmt => '$'
+    my $display2 = DBDisplay->new(
+	number=>2, enabled => 0, arg => '$displays', fmt => '$'
     );
-$displays->add($display2);
-display_status($displays, 2);
+    $displays->add($display2);
+    display_status($displays, 2);
 
-$displays->delete_by_display($display1);
-display_status($displays, 3);
+    $displays->delete_by_display($display1);
+    display_status($displays, 3);
 
-my $display3 = DBDisplay->new(
-    number=>3, enabled => 1, arg => 'foo', fmt => '$'
+    my $display3 = DBDisplay->new(
+       number=>3, enabled => 1, arg => 'foo', fmt => '$'
     );
-$displays->add($display3);
-display_status($displays, 4);
+    $displays->add($display3);
+    display_status($displays, 4);
 
-
-
-  # p displays.delete(2)
-  # p displays[2]
-  # display_status(displays, 3)
-
-  # # Two of the same breakpoints but delete 1 and see that the
-  # # other still stays
-  # offset = frame.pc_offset
-  # b2 = Trepan::Breakpoint.new(iseq, offset)
-  # displays << b2
-  # display_status(displays, 4)
-  # b3 = Trepan::Breakpoint.new(iseq, offset)
-  # displays << b3
-  # display_status(displays, 5)
-  # displays.delete_by_display(b2)
-  # display_status(displays, 6)
-  # displays.delete_by_display(b3)
-  # display_status(displays, 7)
 }
 
 1;

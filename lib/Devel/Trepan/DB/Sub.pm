@@ -18,7 +18,7 @@ BEGIN {
     @DB::ret = ();    # return value of last sub executed in list context
     $DB::ret = '';    # return value of last sub executed in scalar context
     $DB::return_type = 'undef';
-    $deep = 100;      # Max stack depth before we complain.
+    $deep = 70;      # Max stack depth before we complain.
 
     # $stack_depth is to track the current stack depth using the
     # auto-stacked-variable trick. It is 'local'ized repeatedly as
@@ -63,7 +63,8 @@ sub sub {
     # Save current single-step setting.
     $stack[-1] = $single;
 
-    # Turn off all flags except single-stepping.
+    # printf "\$DB::single for $sub: 0%x\n", $DB::single if $DB::single;
+    # Turn off all flags except single-stepping or return event.
     $DB::single &= SINGLE_STEPPING_EVENT;
 
     # If we've gotten really deeply recursed, turn on the flag that will

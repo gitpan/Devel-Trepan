@@ -13,7 +13,7 @@ use vars qw(@EXPORT @ISA $DEFAULT_OPTIONS $PROGRAM_NAME $VERSION);
 
 BEGIN {
     $PROGRAM_NAME = 'trepanpl';
-    $VERSION      = '0.1.1';
+    $VERSION      = '0.1.2';
 }
 use constant VERSION => $VERSION;
 use constant PROGRAM_NAME => $PROGRAM_NAME;
@@ -82,7 +82,8 @@ sub process_options($)
     my $batch_filename = $opts->{testing} // $opts->{batchfile};
     if ($batch_filename) {
 	if (scalar(@{$opts->{cmdfiles}}) != 0) {
-	    print STDERR "--batch option disables any command files";
+	    printf(STDERR "--batch option disables command files: %s\n", 
+		   join(', ', @{$opts->{cmdfiles}}));
 	    $opts->{cmdfiles} = [];
 	}
 	$opts->{nx} = 1;

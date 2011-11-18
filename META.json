@@ -22,7 +22,7 @@
       "configure" : {
          "requires" : {
             "ExtUtils::PkgConfig" : 0,
-            "Module::Build" : "0.38"
+            "Module::Build" : "0.32"
          }
       },
       "runtime" : {
@@ -55,7 +55,7 @@
       },
       "Devel::Trepan" : {
          "file" : "lib/Devel/Trepan.pm",
-         "version" : "v0.1.1"
+         "version" : "v0.1.2"
       },
       "Devel::Trepan::BrkptMgr" : {
          "file" : "lib/Devel/Trepan/BrkptMgr.pm",
@@ -91,6 +91,10 @@
       },
       "Devel::Trepan::CmdProcessor::Command::Continue" : {
          "file" : "lib/Devel/Trepan/CmdProcessor/Command/Continue.pm",
+         "version" : 0
+      },
+      "Devel::Trepan::CmdProcessor::Command::Debug" : {
+         "file" : "lib/Devel/Trepan/CmdProcessor/Command/Debug.pm",
          "version" : 0
       },
       "Devel::Trepan::CmdProcessor::Command::Delete" : {
@@ -491,7 +495,7 @@
       },
       "Devel::Trepan::Options" : {
          "file" : "lib/Devel/Trepan/Options.pm",
-         "version" : "v0.1.1"
+         "version" : "v0.1.2"
       },
       "Devel::Trepan::Util" : {
          "file" : "lib/Devel/Trepan/Util.pm",
@@ -516,5 +520,5 @@
          "http://opensource.org/licenses/gpl-license.php"
       ]
    },
-   "version" : "v0.1.1"
+   "version" : "v0.1.2"
 }

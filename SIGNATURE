@@ -15,14 +15,14 @@ not run its Makefile.PL or Build.PL.
 Hash: SHA1
 
 SHA1 be0627fff2e8aef3d2a14d5d7486babc8a4873ba Artistic
-SHA1 2ed55fc8275d1f3e541fb324fdbec1c2e340ed66 Build.PL
-SHA1 7201207c5c35111e6ad943f362350f0658601aa4 ChangeLog
-SHA1 fdeb4ae090f8ec8b4a5d619ef1b88d35d84208a9 Changes
-SHA1 3bab0f2fda37b6dba32825c605d5aeea573d2806 GNUmakefile
-SHA1 d7971df93b3e37fe01439eea3fe6ba17d9236785 MANIFEST
+SHA1 5b0b0f2775525eee54f848f914d85b42ff3a7b59 Build.PL
+SHA1 77445f4721cb4b7b2c7375496f827bed2669972d ChangeLog
+SHA1 c0622d2a214a8518316b14002c56fe1c11e6a822 Changes
+SHA1 067a2e4b5e1f36609f5aa66c5c12179cba00c36b GNUmakefile
+SHA1 249eba33ee9a8394d8d1f6390573ac7673082404 MANIFEST
 SHA1 6387c02103c94a2ed61fea141a8bb1a32fb6c436 MANIFEST.SKIP
-SHA1 cad3100bd3f3898b030d3e322ebe9f90e94a8f8c META.json
-SHA1 e8040aa369c5f20a66c66ab5d672f8b094282ded META.yml
+SHA1 78d3e66e1f34f5569eb68e5c8227a65ebe012f2a META.json
+SHA1 875a51796a172715bf80596f1679184c34f1a89f META.yml
 SHA1 1e6b0af581ddc16c303919230c2773d262d4f49b Makefile.PL
 SHA1 5775ca3c98324ccb8fcdf8f98d52b0fdd0786419 README
 SHA1 c4d03182186a1d02329a6651e60445423bf0d753 bin/trepanpl
@@ -35,9 +35,9 @@ SHA1 462c8ae7d94573cb504636acf754ca8fa568f52f example/test-module.pm
 SHA1 913d2fbcebc4a2d38f702f2098a24451a857c6b7 example/test-require.pl
 SHA1 8624bcdae55baeef00cd11d5dfcfa60f68710a02 gpl-3.0.txt
 SHA1 e537e17774d82570366949756b8067c264cb24ab ignore.txt
-SHA1 e644c930e0cef080e327617d80fd6d09567e1166 lib/Devel/Trepan.pm
+SHA1 f1739846f14a1abc659940cfe0dbe7369bd78a9a lib/Devel/Trepan.pm
 SHA1 228fe29ffdbfc8fa3ddfe52e211e565e356212e5 lib/Devel/Trepan/BrkptMgr.pm
-SHA1 1f9e976590a011611aceb341c93b5076ef22a8ec lib/Devel/Trepan/CmdProcessor.pm
+SHA1 5abfa16e11a0ba99e98941d7121093f71f50a269 lib/Devel/Trepan/CmdProcessor.pm
 SHA1 4a639adc717fee21ff00e9efc79f063e08019e04 lib/Devel/Trepan/CmdProcessor/Command.pm
 SHA1 6004d80426d2bce601de6bb678abc88cf0918e89 lib/Devel/Trepan/CmdProcessor/Command/Action.pm
 SHA1 99ce35b25516cb6969b06234511a930a988c73f0 lib/Devel/Trepan/CmdProcessor/Command/Alias.pm
@@ -45,6 +45,7 @@ SHA1 8e205238208d5fb8c3f915c0d6c50fa6ac5382a1 lib/Devel/Trepan/CmdProcessor/Comm
 SHA1 759b1a688cc35de1cdf05d9cae6c2c8afcca0818 lib/Devel/Trepan/CmdProcessor/Command/Break.pm
 SHA1 09a5525ab5dde8aaa5f102a266e9c2b6dce88b04 lib/Devel/Trepan/CmdProcessor/Command/Condition.pm
 SHA1 31e8d39069bb1181733821af665ac2d49b264069 lib/Devel/Trepan/CmdProcessor/Command/Continue.pm
+SHA1 9069d11797eac12cecb7d5cb0f33ce22fc02babc lib/Devel/Trepan/CmdProcessor/Command/Debug.pm
 SHA1 5ae40dd55041e4630750dc615fa9e27da2454295 lib/Devel/Trepan/CmdProcessor/Command/Delete.pm
 SHA1 c894805bc6b6352eea4506f990607780bbd1f43f lib/Devel/Trepan/CmdProcessor/Command/Disable.pm
 SHA1 7556aceaf7d9e5e858d4bce545c306f7d5fe6a3a lib/Devel/Trepan/CmdProcessor/Command/Display.pm
@@ -52,9 +53,9 @@ SHA1 b2a9be463fbdd80af160a0136ff8b81654049ff4 lib/Devel/Trepan/CmdProcessor/Comm
 SHA1 a7201e51cfb85f9e19b714d90ec91c7c96b26006 lib/Devel/Trepan/CmdProcessor/Command/Edit.pm
 SHA1 398af2ff9eadcf797dc3231c9753c5147f5b70b9 lib/Devel/Trepan/CmdProcessor/Command/Enable.pm
 SHA1 87e16c3407679577e4f64a2aed66b2f214f93453 lib/Devel/Trepan/CmdProcessor/Command/Eval.pm
-SHA1 b9ecef73e48d96eff933b9dcfba8ce67e93d9d83 lib/Devel/Trepan/CmdProcessor/Command/Finish.pm
+SHA1 22722a61894883e31af8ffc75df58a42a242a29f lib/Devel/Trepan/CmdProcessor/Command/Finish.pm
 SHA1 3ee87d1d5d28b5d458db2013492cf3c4c3e26a95 lib/Devel/Trepan/CmdProcessor/Command/Frame.pm
-SHA1 c3f0cb91f7c2768554a9056f9817100943f8c3a5 lib/Devel/Trepan/CmdProcessor/Command/Help.pm
+SHA1 411bc134551464d7477aa30cbc1ccd4d0a9c476e lib/Devel/Trepan/CmdProcessor/Command/Help.pm
 SHA1 3d08189fbba7280cb2f5a5497fe43486c8825ea0 lib/Devel/Trepan/CmdProcessor/Command/Help/README
 SHA1 39ab1ba75ab4f320ae99be4dc6758eaf77a53ac0 lib/Devel/Trepan/CmdProcessor/Command/Help/command.txt
 SHA1 b039a3410f9bac3aeaa260d3df41f29ae496e9ce lib/Devel/Trepan/CmdProcessor/Command/Help/examples.txt
@@ -70,7 +71,7 @@ SHA1 b3ade5564dac36e2856de06b9f78a4815d72bc88 lib/Devel/Trepan/CmdProcessor/Comm
 SHA1 01f406c0a5be7235b48d1378d3c98f0c9cc62e9e lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Return.pm
 SHA1 bd227fba1c85e30c9e7ade2426924aef18cdbdc9 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Watch.pm
 SHA1 25a78279105abc49516355a77ea003b2a8e253ec lib/Devel/Trepan/CmdProcessor/Command/Kill.pm
-SHA1 27586db6e679ec7f7a5493cb08a2021970d04e73 lib/Devel/Trepan/CmdProcessor/Command/List.pm
+SHA1 e39dd59139309fe6528879e244d3b01b3bf55f07 lib/Devel/Trepan/CmdProcessor/Command/List.pm
 SHA1 cc88f13367eb9365a8999de12fc74452c52c8d9e lib/Devel/Trepan/CmdProcessor/Command/Macro.pm
 SHA1 2257c9205a4964e2f2a0c3d5a81736041ff39501 lib/Devel/Trepan/CmdProcessor/Command/Next.pm
 SHA1 563a3e0706f4762e081ef5ab555d3aa1e68009d1 lib/Devel/Trepan/CmdProcessor/Command/Quit.pm
@@ -115,7 +116,7 @@ SHA1 7e707373a26c26c0008882ccaf1920478ab6cd9d lib/Devel/Trepan/CmdProcessor/Comm
 SHA1 b93e3d63df407f9cc1091c6cd3114f6f96a8307e lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Trace.pm
 SHA1 8921d2d5b4c8269b4a1a173d266bc8e7796eebb7 lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Trace_Subcmd/Print.pm
 SHA1 e4b8768ffa8eb34a434141502ef4da753a430012 lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Version.pm
-SHA1 32de0acba643127a89c6aa3e030fa89e8633c654 lib/Devel/Trepan/CmdProcessor/Command/Source.pm
+SHA1 1ffc89f9f12f6422468efcf6988676dfeaf5843d lib/Devel/Trepan/CmdProcessor/Command/Source.pm
 SHA1 311cea1b54d40020532195d78f022e841b6cfc4f lib/Devel/Trepan/CmdProcessor/Command/Step.pm
 SHA1 32da158e60679dbdf750a1621acc712042dee6b0 lib/Devel/Trepan/CmdProcessor/Command/Subcmd/Core.pm
 SHA1 5c6c4a13a3d35d282e15d5965f21f39720b4b2d2 lib/Devel/Trepan/CmdProcessor/Command/Subcmd/SubMgr.pm
@@ -131,33 +132,33 @@ SHA1 b051ad551dafab7214c8828b98d510cdd1b054d8 lib/Devel/Trepan/CmdProcessor/Fram
 SHA1 4631f136ddacead3fa7422dc610e944fe29ed8dd lib/Devel/Trepan/CmdProcessor/Help.pm
 SHA1 423f0d4a350f8e30838ee38c8aad63b0d110ce69 lib/Devel/Trepan/CmdProcessor/Hook.pm
 SHA1 3e4a5841f1b98f2ec32f33b50128d03912389773 lib/Devel/Trepan/CmdProcessor/Load.pm
-SHA1 b5f37cc3535a82b154be17672cd824e367246cdb lib/Devel/Trepan/CmdProcessor/Location.pm
+SHA1 0d345a3bdb4e45b474750e762459c64afdb02ecd lib/Devel/Trepan/CmdProcessor/Location.pm
 SHA1 d304038e721d4dbb3a04d78717b727e1de923b66 lib/Devel/Trepan/CmdProcessor/Mock.pm
 SHA1 306003bfd7658d094aaf100b79905b5f4758158c lib/Devel/Trepan/CmdProcessor/Msg.pm
-SHA1 001e587ac51b65dd344d00640f2a369e5fd0e556 lib/Devel/Trepan/CmdProcessor/Running.pm
+SHA1 fe3c45c344d4bad7d34370054ee0200d9d12ec97 lib/Devel/Trepan/CmdProcessor/Running.pm
 SHA1 4651e255c2029f4b7b8682d379a7200550c019d1 lib/Devel/Trepan/CmdProcessor/Validate.pm
 SHA1 51e1d6759b72373dbb9d4a79a8c90dbafc051552 lib/Devel/Trepan/CmdProcessor/Virtual.pm
 SHA1 1b4ba442cbb61107c813e019134312da37860d65 lib/Devel/Trepan/Complete.pm
 SHA1 601a547fd2c164035fef9922423b0f4261d6d245 lib/Devel/Trepan/Condition.pm
 SHA1 97e909cf595ec91f8b7256270b58f9890403e0d9 lib/Devel/Trepan/Core.pm
-SHA1 36f526eb9d0048347d24bdd3406e0d3f42cc3f27 lib/Devel/Trepan/DB.pm
+SHA1 f41baddfe6143cae195258b790959b3e192b4c5c lib/Devel/Trepan/DB.pm
 SHA1 194623224a185437d238105aa8ce60cc2430cf6c lib/Devel/Trepan/DB/Backtrace.pm
 SHA1 0b49a734d6cd54c6b2b9482e1fea92f49f23813f lib/Devel/Trepan/DB/Breakpoint.pm
 SHA1 adddda29a17d5a046722da6c9e19649ed2c335ae lib/Devel/Trepan/DB/Colors.pm
-SHA1 0631dee514d4047b6cf2c64a50b1dcf5decc5291 lib/Devel/Trepan/DB/Display.pm
-SHA1 3291c281d2f2a4b3e8ced67893cc8ef0469367a0 lib/Devel/Trepan/DB/Eval.pm
-SHA1 96700ae13cc0a3bdf7fd7c4a2db25d20e4b8ef88 lib/Devel/Trepan/DB/LineCache.pm
-SHA1 fc6f0df01fb178c0e4897480c471732e0a42400d lib/Devel/Trepan/DB/Sub.pm
-SHA1 00f7aeb60df2ba16672a512f7fb60af6df7e1b8a lib/Devel/Trepan/IO.pm
+SHA1 861d3c39713b02e1d48f84b9ed3089321188a34e lib/Devel/Trepan/DB/Display.pm
+SHA1 046e4af9bb3915f9ad09eb960addd6794cbdeb1e lib/Devel/Trepan/DB/Eval.pm
+SHA1 aa79de3fee3e8b223146a43227a7121281285c89 lib/Devel/Trepan/DB/LineCache.pm
+SHA1 ce2eb76df8524a4d49d951a4f300ab9bab77a84d lib/Devel/Trepan/DB/Sub.pm
+SHA1 8981593af012c03f316f469dd0590d3af2093ea2 lib/Devel/Trepan/IO.pm
 SHA1 b1275781c3ffcb10ab5421d3fc8294277c7b00c5 lib/Devel/Trepan/IO/InOutBase.pm
 SHA1 bc09d1f268a7acebb8975eb9fc903bec97c2455a lib/Devel/Trepan/IO/Input.pm
 SHA1 dc3cee2a3869ee24b3a8674df0d73ca7f036d5e0 lib/Devel/Trepan/IO/NullOutput.pm
 SHA1 6df525fdcbc565a7775d476232eb1cd738b9413e lib/Devel/Trepan/IO/Output.pm
 SHA1 347f881f94d3caae7b6bb04f931c6207a1bebdb6 lib/Devel/Trepan/IO/StringArray.pm
-SHA1 40aa1db3ea47d479ce2980191a88590a45e17319 lib/Devel/Trepan/Interface.pm
-SHA1 5a8076451621c6dbade4698129d0f10c1b21bff0 lib/Devel/Trepan/Interface/Script.pm
-SHA1 ea4ba499b0db4df49153fc4c58a283f144a5e05e lib/Devel/Trepan/Interface/User.pm
-SHA1 af5e02d96011ba12063b1815f1ae0e72acc108bc lib/Devel/Trepan/Options.pm
+SHA1 bd3b6efe08f4eaa4ac3bbffbf8d9d8c85de99ad5 lib/Devel/Trepan/Interface.pm
+SHA1 500d7de344b2e318caf43379aaabb41b16e55003 lib/Devel/Trepan/Interface/Script.pm
+SHA1 fe1fc82915eb35c6820daed5471adabeba3a45df lib/Devel/Trepan/Interface/User.pm
+SHA1 2fa23fdcf2b6f54edc0ab423c39e2223ab382a7c lib/Devel/Trepan/Options.pm
 SHA1 c978d38de5143c2bf030ff15bb73c86eca319084 lib/Devel/Trepan/Position.pm
 SHA1 9c70bfb1d39df58f0edc1a7937a4fc5fac476978 lib/Devel/Trepan/Psh.pm
 SHA1 65f6abcf2466e7eb6f9ce6cc0a5d40737ea54bf3 lib/Devel/Trepan/Util.pm
@@ -179,8 +180,9 @@ SHA1 c70002bcb093166a55ecf942665a3130a7c47f1a t/10test-util.t
 SHA1 94a5c456772f0e1270ffb46c26154e0677979133 t/10test-validate.t
 SHA1 1d04e1822164a19aefaf315ea45c1cf902a2faf4 t/20test-autolist.t
 SHA1 0a7980e0ceba6c3fe41f869f5405e2ed45d65389 t/20test-break.t
+SHA1 0fa062f3ccc8636b669ed7dbb0bbaeca90e34791 t/20test-debug.t
 SHA1 0a08ae7d0491921cd9810ffff53e391a7f8b2918 t/20test-display.t
-SHA1 47cf8df54f8aa5053de521c92557e299a793b12d t/20test-eval.t
+SHA1 b26529dc5d1ac5e7f338ef93315b411d6d45f623 t/20test-eval.t
 SHA1 db5d4a72250701894624b8583f16fbc969965b0b t/20test-list1.t
 SHA1 eccc2ad3b1bc26d93c589e0890bf03e2185b1e41 t/20test-list2.t
 SHA1 8fdb6e4f73f2dd4a1d5e47792b38e067a8ce9be7 t/20test-list3.t
@@ -188,14 +190,17 @@ SHA1 57b5be2211688a65662bf8346c81d36fc1127724 t/20test-list4.t
 SHA1 779359cfe2fe72dc4c45120ee7d97e193f74fca0 t/20test-next.t
 SHA1 40e3b9b82bb5b7a6462407e659a8f262a1f7d0a9 t/20test-seq1.t
 SHA1 af6a9f2d7d450de97b58a51e99dd8967fb35fa0d t/20test-step.t
-SHA1 cff31c178628e3ec0bca6573a2075a8dae74312f t/20test-trace.t
+SHA1 4a4ed5513768488d47d90bd0effa089f3fe05c4d t/20test-trace.t
 SHA1 af385121f4a6ec4ba618e71b645a1c344a186342 t/20test-trepanpl-opts.t
 SHA1 04c5070db58484fe938f224895ad118b426c404b t/20test-watch1.t
 SHA1 bb78f3320f6edc322ca6032f68f8dfd706c89651 t/Helper.pm
+SHA1 151e55de75c52eb75b0376f2b964c562920c3cc9 t/Makefile
 SHA1 02a9926197ed8ca705ece9acb3cf72dd3fe8a68b t/data/autolist.cmd
 SHA1 44e200499d4d4f8e74e73720b62fa530df820a2a t/data/autolist.right
 SHA1 f56cafa6963a37a8244626c780959cc4a7ea06eb t/data/break.cmd
 SHA1 ee0830c3aa097fc9fdec74f516a6b5a7b7690c74 t/data/break.right
+SHA1 148b116762b62b2e1c405cd4eedba59dde99e93e t/data/debug.cmd
+SHA1 7ce8b92205239911b5a372dc6c89c9f9ff3e3d76 t/data/debug.right
 SHA1 556559b8c96104c6e0bee70bedd7c1f4f47ad860 t/data/display.cmd
 SHA1 1122c7fd12b67927123d026fe9cf183e6136886f t/data/display.right
 SHA1 e4b7dba9be725c4fac91b1449d9e2a7fdd146cd6 t/data/eval.cmd
@@ -227,7 +232,7 @@ SHA1 afac5ef5cc6a4b8c9f6e122e809245451cb735e8 t/data/watch2.right
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEARECAAYFAk6/ItgACgkQGo3lAIJ17CEMoQCcCtNTDDew6YVpOrgdx34TeWkK
-1aUAnjsHoRyG5fQJiQcseeDThcMMgdy6
-=vS3D
+iEYEARECAAYFAk7FzFIACgkQGo3lAIJ17CG0UgCfYp/ZUDrgNM8iz4nYGCoz2zft
+CB0An2lgj9oXpxA2TKUDw3GQaudEzA8H
+=cODr
 -----END PGP SIGNATURE-----

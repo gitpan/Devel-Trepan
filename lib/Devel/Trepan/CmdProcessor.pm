@@ -1,37 +1,42 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org> 
+
+# A debugger command processor. This includes the debugger commands
+# and ties together the debugger core and I/O interface.
 package Devel::Trepan::CmdProcessor;
+
 use English qw( -no_match_vars );
 use feature ":5.10";  # Includes "state" feature.
 use Exporter;
 use feature 'switch';
-use warnings; use strict;
+use warnings; no warnings 'redefine';
+
+use vars qw(@EXPORT @ISA $eval_result);
 
 # Showing eval results can be done using either data dump package.
-require Data::Dumper; require Data::Dumper::Perltidy;
+use if !defined @ISA, Data::Dumper; require Data::Dumper::Perltidy;
 
 use rlib '../..';
-require Devel::Trepan::BrkptMgr;
-require Devel::Trepan::DB::Display;
-require Devel::Trepan::Interface::User;
-require Devel::Trepan::CmdProcessor::Virtual;
-require Devel::Trepan::CmdProcessor::Default;
-require Devel::Trepan::CmdProcessor::Msg;
-require Devel::Trepan::CmdProcessor::Help;
-require Devel::Trepan::CmdProcessor::Hook;
-require Devel::Trepan::CmdProcessor::Frame;
-require Devel::Trepan::CmdProcessor::Location;
-require Devel::Trepan::CmdProcessor::Load unless
-    defined $Devel::Trepan::CmdProcessor::Load_seen;
-require Devel::Trepan::CmdProcessor::Running;
-require Devel::Trepan::CmdProcessor::Validate;
+
+unless (scalar @ISA) {
+    require Devel::Trepan::CmdProcessor::Load;
+    require Devel::Trepan::BrkptMgr;
+    require Devel::Trepan::DB::Display;
+    require Devel::Trepan::Interface::User;
+    require Devel::Trepan::CmdProcessor::Virtual;
+    require Devel::Trepan::CmdProcessor::Default;
+    require Devel::Trepan::CmdProcessor::Msg;
+    require Devel::Trepan::CmdProcessor::Help;
+    require Devel::Trepan::CmdProcessor::Hook;
+    require Devel::Trepan::CmdProcessor::Frame;
+    require Devel::Trepan::CmdProcessor::Location;
+    require Devel::Trepan::CmdProcessor::Running;
+    require Devel::Trepan::CmdProcessor::Validate;
+}
 use strict;
-use warnings;
-no warnings 'redefine';
 
 use Devel::Trepan::Util qw(hash_merge uniq_abbrev);
 
-use vars qw(@EXPORT @ISA $eval_result);
 @ISA = qw(Exporter);
 
 BEGIN {
@@ -67,7 +72,6 @@ sub new($;$$$) {
     $self->{cmd_queue}      = [];
     $self->{DB_running}     = $DB::running;
     $self->{DB_single}      = $DB::single;
-    $self->{debug_nest}     = 1;
     $self->{last_command}   = undef;
     $self->{leave_cmd_loop} = undef;
     $self->{settings}       = hash_merge($settings, DEFAULT_SETTINGS());
@@ -107,7 +111,7 @@ sub compute_prompt($)
     # 	$thread_str = "@#{Thread.current.object_id}";
     # }
     sprintf("%s$self->{settings}{prompt}%s%s: ",
-	    '(' x $self->{debug_nest}, $thread_str, ')' x $self->{debug_nest});
+	    '(' x $DB::level, $thread_str, ')' x $DB::level);
 }
 
 sub DESTROY($)
@@ -211,7 +215,8 @@ sub process_commands($$$;$)
 {
     my ($self, $frame, $event, $arg) = @_;
     state $last_i = 0;
-    if ($event eq 'after_eval') {
+    $event = 'unknown' unless defined($event);
+    if ($event eq 'after_eval' or $event eq 'after_nest') {
 	my $val_str;
 	my $prefix="\$DB::D[$last_i] =";
 
@@ -270,9 +275,17 @@ sub process_commands($$$;$)
 	    $self->{set_wp} = undef;
 	}
 	
-	$DB::eval_opts->{return_type} = '';
+	$DB::eval_opts = {
+	    return_type => '',
+	};
 	$DB::eval_result = undef;
 	@DB::eval_result = undef;
+	if ($event eq 'after_nest') {
+	    $self->msg("Leaving nested debug level $DB::level");
+	    $self->{prompt} = compute_prompt($self);
+	    $self->frame_setup($frame);
+	    $self->print_location;
+	}
     } else {
 	$self->frame_setup($frame);
 	$self->{event} = $event;
@@ -305,8 +318,7 @@ sub process_commands($$$;$)
 	    }
 	}
 	
-	$self->{prompt} = $self->compute_prompt;
-	
+	$self->{prompt} = compute_prompt($self);
 	$self->print_location unless $self->{settings}{traceprint};
 	## $self->{eventbuf}->add_mark if $self->{settings}{tracebuffer};
 	
@@ -410,10 +422,7 @@ sub run_command($$)
     # Eval anything that's not a command or has been
     # requested to be eval'd
     if ($self->{settings}{autoeval} || $eval_command) {
-	no warnings 'once';
-	$DB::eval_str = $self->{dbgr}->evalcode($current_command);
-	$self->{DB_running} = 2;
-	$self->{leave_cmd_loop} = 1;
+	$self->evaluate($current_command, {nest => 0});
 	return;
     }
     $self->undefined_command($cmd_name);
@@ -438,14 +447,18 @@ unless (caller) {
     for my $fn (qw(errmsg msg section)) { 
 	$proc->$fn('testing');
     }
-    my $prompt = $proc->{prompt} = $proc->compute_prompt;
+    $DB::level = 1;
+    my $prompt = $proc->{prompt} = compute_prompt($proc);
     sub foo() {
 	my @call_values = caller(0);
 	return @call_values;
     }
     print "prompt setting: $prompt\n";
+    $DB::level = 2;
+    $prompt = $proc->{prompt} = compute_prompt($proc);
+    print "prompt setting 2: $prompt\n";
     my @call_values = foo();
-    $proc->frame_setup(\@call_values, 0);
+    ## $proc->frame_setup(\@call_values, 0);
     my $sep = '=' x 40 . "\n";
     $proc->undefined_command("foo");
     print $sep;

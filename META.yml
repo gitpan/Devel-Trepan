@@ -6,7 +6,7 @@ build_requires:
   String::Diff: 0
 configure_requires:
   ExtUtils::PkgConfig: 0
-  Module::Build: 0.38
+  Module::Build: 0.32
 dynamic_config: 1
 generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112150'
 license: open_source
@@ -26,7 +26,7 @@ provides:
     version: 0
   Devel::Trepan:
     file: lib/Devel/Trepan.pm
-    version: v0.1.1
+    version: v0.1.2
   Devel::Trepan::BrkptMgr:
     file: lib/Devel/Trepan/BrkptMgr.pm
     version: 0
@@ -53,6 +53,9 @@ provides:
     version: 0
   Devel::Trepan::CmdProcessor::Command::Continue:
     file: lib/Devel/Trepan/CmdProcessor/Command/Continue.pm
+    version: 0
+  Devel::Trepan::CmdProcessor::Command::Debug:
+    file: lib/Devel/Trepan/CmdProcessor/Command/Debug.pm
     version: 0
   Devel::Trepan::CmdProcessor::Command::Delete:
     file: lib/Devel/Trepan/CmdProcessor/Command/Delete.pm
@@ -353,7 +356,7 @@ provides:
     version: 0
   Devel::Trepan::Options:
     file: lib/Devel/Trepan/Options.pm
-    version: v0.1.1
+    version: v0.1.2
   Devel::Trepan::Util:
     file: lib/Devel/Trepan/Util.pm
     version: 0
@@ -379,4 +382,4 @@ requires:
   version: 0
 resources:
   license: http://opensource.org/licenses/gpl-license.php
-version: v0.1.1
+version: v0.1.2

@@ -11,7 +11,7 @@ use feature 'switch';
 use warnings; no warnings 'redefine';
 use English qw( -no_match_vars );
 
-use vars qw($usrctxt $running $caller 
+use vars qw($usrctxt $running $caller
             $event @ret $ret $return_value @return_value
             $stop
             $init_dollar0 $OS_STARTUP_DIR);
@@ -57,6 +57,13 @@ BEGIN {
     $DB::package = '';    # current package space
     $DB::filename = '';   # current filename
     $DB::subname = '';    # currently executing sub (fully qualified name)
+
+    # This variable records how many levels we're nested in debugging. Used
+    # Used in the debugger prompt, and in determining whether it's all over or
+    # not.
+    $DB::level = 0;       # Level of nested debugging
+
+
     $DB::lineno = '';     # current line number
     $DB::subroutine = '';
     $DB::hasargs = '';
@@ -101,6 +108,11 @@ BEGIN {
     # Don't print return values on exiting a subroutine.
     $doret = -2;
 
+    # "Triggers bug (?) in perl if we postpone this until runtime."
+    # XXX No details on this yet, or whether we should fix the bug instead
+    # of work around it. Stay tuned.
+    @postponed = @stack = (0);
+
     # No extry/exit tracing.
     $frame = 0;
 }
@@ -120,6 +132,7 @@ sub DB {
 
     return unless $ready && !$in_debugger;
     local $in_debugger = 1;
+    ## print "+++ in DB\n";
     @DB::_ = @_;
     &save;
 
@@ -151,6 +164,9 @@ sub DB {
     $DB::event = undef;
     $DB::brkpt = undef;
 
+    # Increment debugger nesting level.
+    local $DB::level = $DB::level + 1;
+
     # Test watch expressions;
     my $watch_triggered = undef;
     for my $c (@clients) {
@@ -158,11 +174,11 @@ sub DB {
 	my @list= @{$c->{watch}->{list}};
 	for my $wp (@list) {
 	    next unless $wp->enabled;
-	    ## FIXME: eval_opts should be a parameter
-	    $eval_opts->{return_type} = '$';
-	    my $new_val = &DB::eval_with_return($usrctxt, $wp->expr, @saved);
+	    my $new_val = &DB::eval_with_return($usrctxt, $wp->expr, 
+						'$',
+						@saved);
 	    my $old_val = $wp->old_value;
-	    next if !defined($old_value) && !defined($new_val);
+	    next if !defined($old_value) and !defined($new_val);
 	    my $not_same = !defined($old_val) || !defined($new_val);
             if ( $not_same || $new_val ne $wp->old_value ) {
                 # Yep! Record change.
@@ -199,7 +215,7 @@ sub DB {
 		$DB::brkpt = $brkpt;
 		$event = $brkpt->type;
 		if ($event eq 'tbrkpt') {
-		    # Note breakpoint is temporary and remove it.
+		    # breakpoint is temporary and remove it.
 		    undef $brkpts->[$i];
 		} else {
 		    my $hits = $brkpt->hits + 1;
@@ -217,7 +233,7 @@ sub DB {
 	$event ||= 'return';
     } elsif ($DB::trace ) {
 	$event ||= 'trace';
-    } elsif ($DB::trace  || $DB::single) {
+    } elsif ($DB::single) {
 	$event ||= 'line';
     } else {
 	$event = 'unknown';
@@ -247,35 +263,56 @@ sub DB {
 		for my $disp (@$display_aref) {
 		    next unless $disp && $disp->enabled;
 		    # FIXME: allow more than just scalar contexts.
-		    my $eval_result =  &DB::eval_with_return($usrctxt, $disp->arg, @saved);
+		    my $eval_result =  
+			&DB::eval_with_return($usrctxt, $disp->arg, 
+					      $disp->return_type, @saved);
 		    my $mess = sprintf("%d: $eval_result", $disp->number);
 		    $c->output($mess);
 		}
 
+		given ($after_eval) {
+		    when (1) {$event = 'after_eval'; }
+		    when (2) {$event = 'after_nest'; }
+		    default { ; }
+		}
+
 		# call client event loop; must not block
-		$event = 'after_eval' if $after_eval;
 		$c->idle($event, $watch_triggered);
 		$after_eval = 0;
 		if ($running == 2 && defined($eval_str)) { 
 		    # client wants something eval-ed
 		    # FIXME: turn into subroutine.
-		    given ($eval_opts->{return_type}) {
+
+		    local $nest = $eval_opts->{nest};
+		    my $return_type = $eval_opts->{return_type};
+
+		    given ($return_type) {
 			when ('$') {
 			    $eval_result = 
-				&DB::eval_with_return($usrctxt, $eval_str, @saved);
+				&DB::eval_with_return($usrctxt, $eval_str, 
+						      $return_type, @saved);
 			}
 			when ('@') {
-			    &DB::eval_with_return($usrctxt, $eval_str, @saved);
+			    &DB::eval_with_return($usrctxt, $eval_str, 
+						  $return_type, @saved);
 			}
 			when ('%') {
-			    &DB::eval_with_return($usrctxt, $eval_str, @saved);
+			    &DB::eval_with_return($usrctxt, $eval_str, 
+						  $return_type, @saved);
 			} 
 			default {
 			    $eval_result = 
-				&DB::eval_with_return($usrctxt, $eval_str, @saved);
+				&DB::eval_with_return($usrctxt, $eval_str, 
+						      $return_type, @saved);
 			}
 		    }
-		    $after_eval = 1;
+
+		    if ($nest) {
+			$DB::in_debugger = 1;
+			$after_eval = 2;
+		    } else {
+			$after_eval = 1;
+		    }
 		    $running = 0;
 		}
 	    } until $running;
