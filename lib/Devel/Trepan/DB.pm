@@ -33,18 +33,20 @@ my $ineval = {};
 #
 ####
 
+use Cwd;
 BEGIN {
     no warnings 'once';
     $ini_warn = $WARNING;
     @ini_INC = @INC;       # Save the contents of @INC before they are modified elsewhere.
     @ini_ARGV = @ARGV;
     $ini_dollar0 = $0;
-    $OS_STARTUP_DIR = `pwd`;
+    $OS_STARTUP_DIR = getcwd;
 
     # these are hardcoded in perl source (some are magical)
     
     $DB::sub = '';        # name of current subroutine
-    $DB::single = 0;      # single-step flag (set it to 1 to enable stops in BEGIN/use)
+    $DB::single = 0;      # single-step flags. See constants at the 
+                          # top of DB/Sub.pm
     $DB::signal = 0;      # signal flag (will cause a stop at the next line)
     $DB::stop = 0;        # value of last breakpoint condition evaluation
 
@@ -122,6 +124,7 @@ BEGIN {
 #
 sub DB {
 
+    # print "+++ in DB single: ${DB::single}\n";
     # lock the debugger and get the thread id for the prompt
     lock($DBGR);
 
@@ -132,7 +135,6 @@ sub DB {
 
     return unless $ready && !$in_debugger;
     local $in_debugger = 1;
-    ## print "+++ in DB\n";
     @DB::_ = @_;
     &save;
 
@@ -233,8 +235,10 @@ sub DB {
 	$event ||= 'return';
     } elsif ($DB::trace ) {
 	$event ||= 'trace';
-    } elsif ($DB::single) {
+    } elsif ($DB::single & (SINGLE_STEPPING_EVENT | NEXT_STEPPING_EVENT)) {
 	$event ||= 'line';
+    } elsif ($DB::single & DEEP_RECURSION_EVENT) {
+	$event ||= 'recurse overflow';
     } else {
 	$event = 'unknown';
     }
@@ -424,21 +428,15 @@ sub done {
 }
 
 sub _clientname {
-  my $name = shift;
-  "$name" =~ /^(.+)=[A-Z]+\(.+\)$/;
-  return $1;
-}
-
-sub next {
-  my $s = shift;
-  $DB::single = 2;
-  $running = 1;
+    my $name = shift;
+    "$name" =~ /^(.+)=[A-Z]+\(.+\)$/;
+    return $1;
 }
 
 sub step {
     my $s = shift;
-    $DB::single = 1;
-    $running = 1;
+    $DB::single  = SINGLE_STEPPING_EVENT;
+    $DB::running = 1;
 }
 
 # cont 
@@ -462,32 +460,34 @@ sub cont {
 	$stack[$i++] &= ~1;
     }
     $DB::single = 0;
-    return $running = 1;
+    return $DB::running = 1;
 }
 
 # stop before finishing the current subroutine
 sub finish($;$$) {
-  my $s = shift;
-  # how many levels to get to DB sub?
-  my $count = scalar @_ >= 1 ?  shift : 1;
-  my $scan_for_DB_sub = scalar @_ >= 1 ?  shift : 1;
+    my $s = shift;
+    # how many levels to get to DB sub?
+    my $count = scalar @_ >= 1 ?  shift : 1;
+    my $scan_for_DB_sub = scalar @_ >= 1 ?  shift : 1;
 
-  if ($scan_for_DB_sub) {
-      my $i = 0;
-      while (my ($pkg, $file, $line, $fn) = caller($i++)) {
-	  if ('DB::DB' eq $fn or ('DB' eq $pkg && 'DB' eq $fn)) {
-	      $i -= 3;
-	      last;
-	  }
-      }
-      $count += $i;
-  }
+    if ($scan_for_DB_sub) {
+    	my $i = 0;
+    	while (my ($pkg, $file, $line, $fn) = caller($i++)) {
+    	    if ('DB::DB' eq $fn or ('DB' eq $pkg && 'DB' eq $fn)) {
+    		# FIXME: This is hoaky. 4 is somehow how far off
+		# @stack is from caller. 
+    		$i -= 4;
+    		last;
+    	    }
+    	}
+    	$count += $i;
+    }
 
-  my $index = $#stack-$count;
-  $index = 0 if $index < 0;
-  $stack[$index] |= (SINGLE_STEPPING_EVENT | RETURN_EVENT);
-  $DB::single = 0;
-  $running = 1;
+    my $index = $#stack-$count;
+    $index = 0 if $index < 0;
+    $stack[$index] = RETURN_EVENT;
+    # $DB::single = RETURN_EVENT;
+    $DB::running = 1;
 }
 
 sub return_value($) 
@@ -585,12 +585,12 @@ sub skippkg {
 }
 
 sub evalcode {
-  my ($client, $expr) = @_;
-  if (defined $expr) {
-    $running = 2;    # hand over to DB() to evaluate in its context
-    $ineval->{$client} = $expr;
-  }
-  return $ineval->{$client};
+    my ($client, $expr) = @_;
+    if (defined $expr) {
+	$DB::running = 2;    # hand over to DB() to evaluate in its context
+	$ineval->{$client} = $expr;
+    }
+    return $ineval->{$client};
 }
 
 sub ready {

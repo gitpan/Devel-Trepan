@@ -36,11 +36,12 @@ sub canonic_file($$;$)
 
     # For now we want resolved filenames 
     if ($self->{settings}{basename}) {
-	return basename($filename);
+	my $is_eval = DB::LineCache::filename_is_eval($filename);
+	return $is_eval ? $filename : (basename($filename) || $filename);
     } elsif ($resolve) {
     	$filename = DB::LineCache::map_file($filename);
 	my $is_eval = DB::LineCache::filename_is_eval($filename);
-	return $is_eval ? $filename: abs_path($filename) || $filename;
+	return $is_eval ? $filename : (abs_path($filename) || $filename);
     } else {
 	return $filename;
     }
@@ -146,7 +147,8 @@ sub format_location($;$$$)
     $self->{line_no}  = $self->{frame}{line};
     
     my $loc = $self->source_location_info;
-    "${ev} (${loc})"
+    my $suffix = ($event eq 'return' && defined($DB::_[0])) ? " $DB::_[0]" : '';
+    "${ev} (${loc})$suffix"
 }
 
 sub print_location($;$)
@@ -192,12 +194,18 @@ unless (caller()) {
     # Demo it.
     require Devel::Trepan::CmdProcessor;
     my $proc  = Devel::Trepan::CmdProcessor->new;
-    sub foo() {
-	my @call_values = caller(0);
-	return @call_values;
+    sub create_frame() {
+    	my ($pkg, $file, $line, $fn) = caller(0);
+	return [
+	    {
+		 file      => $file,
+		 fn        => $fn,
+		 line      => $line,
+		 pkg       => $pkg,
+	    }];
     }
-    my @call_values = foo();
-    $proc->frame_setup(\@call_values, 0);
+    my $frame_ary = create_frame();
+    $proc->frame_setup($frame_ary);
     $proc->{event} = 'return';
     print $proc->format_location, "\n";
     print $proc->current_source_text({output=>'term'}), "\n";

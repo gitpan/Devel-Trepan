@@ -11,17 +11,20 @@ use strict;
 
 use vars qw(@ISA);
 unless (defined(@ISA)) {
-    eval "use constant ALIASES => ('?')";
-    eval "use constant CATEGORY   => 'support'";
-    eval "use constant SHORT_HELP => 'Print commands or give help for command(s)'";
+    eval <<'EOE';
+use constant ALIASES    => ('?');
+use constant CATEGORY   => 'support';
+use constant SHORT_HELP => 'Print commands or give help for command(s)';
+use constant MIN_ARGS   => 0;  # Need at least this many
+use constant MAX_ARGS   => undef; # Need at most this many - undef -> unlimited.
+use constant NEED_STACK => 0;
+EOE
 }
 
 @ISA = @CMD_ISA; 
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $MIN_ARGS = 0;
-our $MAX_ARGS = 10000;
 our $HELP = <<"HELP";
 ${NAME} [command [subcommand]|expression]
 
@@ -53,8 +56,6 @@ BEGIN {
     };" unless declared('CATEGORIES');
 };
 
-local $NEED_STACK    = 0;
-
 use File::Basename;
 use File::Spec;
 my $ROOT_DIR = dirname(__FILE__);
@@ -73,7 +74,7 @@ sub complete($$)
     # 							 $prefix, \@matches);
     # sort (@matches, @aliases);
     sort @matches;
-}    
+}
 
 sub complete_token_with_next($$;$)
 {
@@ -90,6 +91,8 @@ sub complete_token_with_next($$;$)
 	    # } else {
 	    # 	$proc->commands.member?(cmd) ? $proc->commands[cmd] : 0;
 	    # }
+	} else {
+	    push @result, [$cmd, ['*'] ];
 	}
     }
     return @result;

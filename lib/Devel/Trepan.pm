@@ -7,12 +7,12 @@ package Devel::Trepan;
 use strict;
 use warnings;
 use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION);
-use version; $VERSION = '0.1.2';
+use version; $VERSION = '0.1.3';
 use Exporter;
 
 use Devel::Trepan::Core;
 
-use constant PROGRAM => 'trepanpl';
+use constant PROGRAM => 'trepan.pl';
 
 sub show_version {
     PROGRAM . ", version $Devel::Trepan::VERSION";

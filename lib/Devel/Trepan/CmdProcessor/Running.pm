@@ -9,6 +9,10 @@ use Devel::Trepan::Position;
 package Devel::Trepan::CmdProcessor;
 use English qw( -no_match_vars );
 
+use constant SINGLE_STEPPING_EVENT =>  1;
+use constant NEXT_STEPPING_EVENT   =>  2;
+use constant DEEP_RECURSION_EVENT  =>  4;
+use constant RETURN_EVENT          => 32;
 
 
 # attr_accessor :stop_condition  # String or nil. When not nil
@@ -42,8 +46,10 @@ sub continue($$) {
     } else {
 	$self->{leave_cmd_loop} = $self->{dbgr}->cont;
     };
-    $self->{DB_running} = 1;
-    $self->{DB_single} = 0;
+    if ($self->{leave_cmd_loop}) {
+	$self->{DB_running} = 1;
+	$self->{DB_single} =  0;
+    }
 }
 
 # sub quit(cmd='quit')
@@ -98,6 +104,7 @@ sub finish($$) {
     my ($self, $level_count) = @_;
     $self->{leave_cmd_loop} = 1;
     $self->{dbgr}->finish($level_count);
+    $self->{DB_running} = 1;
 }
 
 sub next($$) 
@@ -105,8 +112,8 @@ sub next($$)
     my ($self, $opts) = @_;
     $self->{different_pos} = $opts->{different_pos};
     $self->{leave_cmd_loop} = 1;
+    $self->{DB_single}  = NEXT_STEPPING_EVENT;
     $self->{DB_running} = 1;
-    $self->{DB_single} = 2;
 }
 
 sub step($$) 
@@ -114,8 +121,8 @@ sub step($$)
     my ($self, $opts) = @_;
     $self->{different_pos} = $opts->{different_pos};
     $self->{leave_cmd_loop} = 1;
+    $self->{DB_single}  = SINGLE_STEPPING_EVENT;
     $self->{DB_running} = 1;
-    $self->{DB_single} = 1;
 }
 
 sub running_initialize($)

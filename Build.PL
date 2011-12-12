@@ -31,8 +31,11 @@ my $builder = Module::Build->new(
     license             => 'gpl',
     needs_compiler      => 0,
     release_status      => 'stable',
-    configure_requires  => { 'Module::Build' => '0.32',
-                             'ExtUtils::PkgConfig' => 0 },
+    configure_requires  => { 
+	'Module::Build' => '0.32',
+	'ExtUtils::PkgConfig' => 0,
+			      
+    },
     build_requires => {
         'String::Diff'                      => 0,
     },
@@ -41,8 +44,8 @@ my $builder = Module::Build->new(
 	'Array::Columnize'                  => '0.3.5',
 	'ExtUtils::PkgConfig'               => '1.03',
 	'Data::Dumper::Perltidy'            => 0,
-        'Digest::SHA1'                      => 2.13,
-        'Psh'                               => '1.8.0',
+        'Digest::SHA1'                      => 2.11,
+        'PadWalker'                         => 0,
         'rlib'                              => '0.02',
         'Syntax::Highlight::Perl::Improved' => 0,
         'Test::More'                        => 0,

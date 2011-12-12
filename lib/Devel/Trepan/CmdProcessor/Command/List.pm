@@ -11,16 +11,19 @@ use Devel::Trepan::DB::LineCache;
 use Devel::Trepan::CmdProcessor::Validate;
 use if !defined @ISA, Devel::Trepan::CmdProcessor::Command;
 unless (defined(@ISA)) {
-    eval "use constant ALIASES    => qw(l list> l>)";
-    eval "use constant CATEGORY   => 'files'";
-    eval "use constant SHORT_HELP => 'List source code'";
+    eval <<'EOE';
+    use constant ALIASES    => qw(l list> l>);
+    use constant CATEGORY   => 'files';
+    use constant SHORT_HELP => 'List source code';
+    use constant MIN_ARGS   => 0; # Need at least this many
+    use constant MAX_ARGS   => 3; # Need at most this many - undef -> unlimited.
+    use constant NEED_STACK => 1;
+EOE
 }
 
 use strict; use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
-our $MIN_ARGS = 0;
-our $MAX_ARGS = 3;  # undef -> unlimited
 our $NAME = set_name();
 our $HELP = <<"HELP";
 ${NAME}[>] [FILENAME] [FIRST [NUM]]
@@ -85,7 +88,18 @@ enabled, while at line 255 there is an breakpoint 2 which is
 disabled.
 HELP
 
-local $NEED_RUNNING = 1;
+# FIXME: Should we include all files? 
+# Combine with BREAK completion.
+sub complete($$)
+{
+    my ($self, $prefix) = @_;
+    my $filename = $self->{proc}->filename;
+    # For line numbers we'll use stoppable line number even though one
+    # can enter line numbers that don't have breakpoints associated with them
+    my @completions = sort(('.', '-', DB::LineCache::file_list, DB::subs,
+			    DB::LineCache::trace_line_numbers($filename)));
+    Devel::Trepan::Complete::complete_token(\@completions, $prefix);
+}
 
 # If last is less than first, assume last is a count rather than an
 # end line number.
@@ -208,12 +222,7 @@ sub run($$)
 
     my ($filename, $start, $end) = parse_list_cmd($self, $args, $listsize, 
 						  $center_correction);
-    #   container, start, end = 
-    #     parse_list_cmd(args[1..-1], listsize, center_correction)
-    #   frame = @proc.frame
-    #   return unless container
-    #   breaklist = @proc.brkpts.line_breaks(container)
-    
+    return unless $filename;
 
     # We now have range information. Do the listing.
     my $max_line = DB::LineCache::size($filename);

@@ -18,7 +18,7 @@ use if !defined @ISA, Data::Dumper; require Data::Dumper::Perltidy;
 
 use rlib '../..';
 
-unless (scalar @ISA) {
+unless (defined @ISA) {
     require Devel::Trepan::CmdProcessor::Load;
     require Devel::Trepan::BrkptMgr;
     require Devel::Trepan::DB::Display;
@@ -43,17 +43,6 @@ BEGIN {
     @DB::D = ();  # Place to save eval results;
 }
 
-# sub sample_completion() {
-#     my ($text, $line, $start, $end) = @_;
-#     if (substr($line, 0, $start) =~ /^\s*$/) {
-# 	return qw(a list of candidates);
-# #	return $term->completion_matches($text,
-# #					 $attribs->{'username_completion_function'});
-#     } else {
-# 	return ();
-#     }
-# }
-
 sub new($;$$$) {
     my ($class, $interfaces, $dbgr, $settings) = @_;
     my $intf;
@@ -67,6 +56,7 @@ sub new($;$$$) {
     $self->{actions}        = Devel::Trepan::BrkptMgr->new($dbgr);
     $self->{brkpts}         = Devel::Trepan::BrkptMgr->new($dbgr);
     $self->{displays}       = Devel::Trepan::DisplayMgr->new($dbgr);
+    $self->{completions}    = [];
     $self->{dbgr}           = $dbgr;
     $self->{event}          = undef;
     $self->{cmd_queue}      = [];
@@ -90,11 +80,15 @@ sub new($;$$$) {
 	) if $self->{settings}{traceprint};
 
     if ($intf->has_completion) {
+	my $list_completion = sub {
+	    my($text, $state) = @_;
+	    $self->list_complete($text, $state);
+	};
 	my $completion = sub {
 	    my ($text, $line, $start, $end) = @_;
 	    $self->complete($text, $line, $start, $end);
 	};
-	$intf->set_completion($completion);
+	$intf->set_completion($completion, $list_completion);
     }
     return $self;
 }
@@ -125,7 +119,7 @@ sub ok_for_running ($$$$) {
     my ($self, $cmd, $name, $nargs) = @_;
     # TODO check execution_set against execution status.
     # Check we have frame is not null
-    my $min_args = exists $cmd->{min_args} ? $cmd->{min_args} : 0;
+    my $min_args = eval { $cmd->MIN_ARGS } || 0;
     if ($nargs < $min_args) {
 	my $msg = 
 	    sprintf("Command '%s' needs at least %d argument(s); " .
@@ -133,7 +127,7 @@ sub ok_for_running ($$$$) {
         $self->errmsg($msg);
 	return;
     }
-    my $max_args = exists $cmd->{max_args} ? $cmd->{max_args} : 10000;
+    my $max_args = eval { $cmd->MAX_ARGS } || undef;
     if (defined($max_args) && $nargs > $max_args) {
 	my $mess = 
 	    sprintf("Command '%s' needs at most %d argument(s); " .
@@ -283,11 +277,12 @@ sub process_commands($$$;$)
 	if ($event eq 'after_nest') {
 	    $self->msg("Leaving nested debug level $DB::level");
 	    $self->{prompt} = compute_prompt($self);
-	    $self->frame_setup($frame);
+	    $self->frame_setup();
 	    $self->print_location;
 	}
     } else {
-	$self->frame_setup($frame);
+	$self->{completions} = [];
+	$self->frame_setup();
 	$self->{event} = $event;
 
 	if ($event eq 'watch') {
@@ -309,11 +304,11 @@ sub process_commands($$$;$)
 	if (index($self->{event}, 'brkpt') < 0) {
 	    if ($self->is_stepping_skip()) {
 		# || $self->{stack_size} <= $self->{hide_level};
-		$self->{dbgr}->step();
+		$self->{dbgr}->step;
 		return;
 	    }
 	    if ($self->{settings}{traceprint}) {
-		$self->{dbgr}->step();
+		$self->{dbgr}->step;
 		return;
 	    }
 	}

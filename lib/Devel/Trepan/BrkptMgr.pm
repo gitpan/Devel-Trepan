@@ -35,17 +35,23 @@ sub inspect($)
     $str;
 }    
 
+sub ids($) 
+{
+    my $self = shift;
+    map $_->id, @{$self->compact()};
+}
+
 sub list($) 
 {
     my $self = shift;
-    @{$self->{list}}
+    map defined($_) ? $_ : (),  @{$self->{list}}
 }
 
 # Remove all breakpoints that we have recorded
 sub DESTROY() {
     my $self = shift;
     for my $bp ($self->list) {
-        $self->delete_by_brkpt($bp) if defined($bp);
+        $self->delete_by_brkpt($bp);
     }
     $self->{clear};
 }
@@ -79,7 +85,7 @@ sub delete_by_brkpt($$)
 	next unless defined $candidate;
 	if ($candidate eq $delete_bp) {
 	    $candidate = undef;
-	    $self->{dbgr}->delete_bp($delete_bp);
+	    $self->{dbgr} && $self->{dbgr}->delete_bp($delete_bp);
 	    return $delete_bp;
 	}
     }

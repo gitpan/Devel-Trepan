@@ -5,10 +5,10 @@
 use warnings; no warnings 'redefine';
 use Exporter;
 
-package Devel::Trepan::Interface::User;
-use vars qw(@EXPORT @ISA $HAVE_READLINE);
-
 use rlib '../../..';
+
+package Devel::Trepan::Interface::User;
+use vars qw(@EXPORT @ISA);
 
 use if !defined(@ISA), Devel::Trepan::Util; # qw(hash_merge);
 use if !defined(@ISA), Devel::Trepan::IO::Input;
@@ -32,17 +32,19 @@ use constant DEFAULT_USER_OPTS => {
     history_save   => 1                  # do we save the history?
   };
 
-sub new($;$$$) {
+sub new 
+{
     my($class, $inp, $out, $opts)  = @_;
     $opts = hash_merge($opts, DEFAULT_USER_OPTS);
     my $self = Devel::Trepan::Interface->new($inp, $out, $opts);
     $self->{opts} = $opts;
     bless $self, $class;
-    # @input = if inp.class.ancestors.member?(Trepan::InputBase)
-    #            inp
-    #          else
-    #            Trepan::UserInput.open(inp, {:readline => opts[:readline]})
-    #          end
+    if ($inp && $inp->isa('Devel::Trepan::IO:InputBase')) {
+	$self->{input} = $inp;
+    } else {
+	$self->{input} = Devel::Trepan::IO::Input->new($inp, 
+						       {readline => $opts->{readline}})
+    }
     if ($self->{input}{gnu_readline}) {
 	if ($self->{opts}{complete}) {
 	    my $attribs = $inp->{readline}->Attribs;
@@ -66,8 +68,10 @@ sub remove_history($;$)
 {
     my ($self, $which) = @_;
     return unless ($self->{input}{readline});
-    $which //= $self->{input}{readline}->where_history();
-    $self->{input}{readline}->remove_history($which);
+    $which //= $self->{input}{readline}->where_history() if 
+	$self->{input}{readline}->can("where_history");
+    $self->{input}{readline}->remove_history($which) if
+	$self->{input}{readline}->can("remove_history");
 }
 
 sub is_closed($) 
@@ -115,8 +119,10 @@ sub read_history($)
     }
     $self->{histsize} //= ($ENV{'HISTSIZE'} ? $ENV{'HISTSIZE'} : $opts{histsize});
     if ( -f $self->{histfile} ) {
-	$self->{input}{readline}->StifleHistory($self->{histsize});
-	$self->{input}{readline}->ReadHistory($self->{histfile});
+	$self->{input}{readline}->StifleHistory($self->{histsize}) if
+	    $self->{input}{readline}->can("StifleHistory");
+	$self->{input}{readline}->ReadHistory($self->{histfile}) if
+	    $self->{input}{readline}->can("ReadHistory");
     }
 }
 
@@ -125,8 +131,10 @@ sub save_history($)
     my $self = shift;
     if ($self->{histfile} && $self->{opts}{history_save} && $self->want_gnu_readline &&
 	$self->{input}{readline}) {
-    	$self->{input}{readline}->StifleHistory($self->{opts}{histsize});
-    	$self->{input}{readline}->WriteHistory($self->{histfile});
+	$self->{input}{readline}->StifleHistory($self->{histsize}) if
+	    $self->{input}{readline}->can("StifleHistory");
+	$self->{input}{readline}->WriteHistory($self->{histfile}) if
+	    $self->{input}{readline}->can("WriteHistory");
     }
 }
 
@@ -176,10 +184,22 @@ sub readline($;$) {
 
 sub set_completion($$)
 {
-    my ($self, $completion_fn) = @_;
+    my ($self, $completion_fn, $list_completion_fn) = @_;
     return unless $self->has_completion;
     my $attribs = $self->{input}{readline}->Attribs;
+
+    # Silence "used only once warnings" inside ReadLine::Term::Perl.
+    $readline::rl_completion_entry_function = undef;
+    $readline::rl_attempted_completion_function = undef;
+
+    $attribs->{completion_entry_function} = $list_completion_fn;
+
+    # For Term:ReadLine::Gnu
     $attribs->{attempted_completion_function} = $completion_fn;
+
+    # For Term::ReadLine::Perl
+    $readline::rl_completion_function = undef;
+    $attribs->{completion_function} = $completion_fn;
 }
 
 # Demo

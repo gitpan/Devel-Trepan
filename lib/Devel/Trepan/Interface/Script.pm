@@ -3,16 +3,20 @@
 
 # Module for reading debugger scripts
 
-use warnings; no warnings 'redefine'; use strict; 
+use warnings; no warnings 'redefine';
 use Exporter;
 use IO::File;
 
-package Devel::Trepan::Interface::Script;
 use rlib '../../..';
-use Devel::Trepan::Interface;
+
+package Devel::Trepan::Interface::Script;
+our (@ISA);
+use if !defined(@ISA), Devel::Trepan::Interface;
+use if !defined(@ISA), Devel::Trepan::Interface::ComCodes;
 use Devel::Trepan::IO::Input;
 use Devel::Trepan::IO::StringArray;
 use Devel::Trepan::Util qw(hash_merge);
+use strict; 
 use vars qw(@EXPORT @ISA);
 @ISA = qw(Devel::Trepan::Interface Exporter);
 
@@ -22,7 +26,7 @@ use constant DEFAULT_OPTS => {
     verbose        => 0
 };
   
-sub new($;$$$)
+sub new
 {
     my ($class, $script_name, $out, $opts) = @_;
     $opts //={};
@@ -83,6 +87,17 @@ sub errmsg($$;$)
     # FIXME: should we just set a flag and report eof? to be more
     # consistent with File and IO?
     die if $self->{opts}{abort_on_error};
+}
+
+sub msg($$)
+{
+    my ($self, $msg) = @_;
+    ## FIXME: there must be a better way to do this...
+    if ($self->{output}->isa('Devel::Trepan::IO::TCPServer')) {
+	$self->{output}->writeline(PRINT . $msg);
+    } else {
+	$self->{output}->writeline($msg);
+    }
 }
 
 sub is_interactive() { 0; }

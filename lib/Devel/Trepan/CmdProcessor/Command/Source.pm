@@ -9,10 +9,23 @@ use rlib '../../../..';
 use Devel::Trepan::Interface::Script;
 use Devel::Trepan::IO::NullOutput;
 
+# Must be outside of package!
+use if !defined @ISA, Devel::Trepan::Complete ;
+
 package Devel::Trepan::CmdProcessor::Command::Source;
 use Cwd 'abs_path';
 use Getopt::Long qw(GetOptionsFromArray);
 use if !defined @ISA, Devel::Trepan::CmdProcessor::Command ;
+
+unless (defined(@ISA)) {
+    eval <<'EOE';
+use constant CATEGORY   => 'support';
+use constant SHORT_HELP => 'Read and run debugger commands from a file';
+use constant MIN_ARGS   => 1;     # Need at least this many
+use constant MAX_ARGS   => undef; # Need at most this many - undef -> unlimited.
+use constant NEED_STACK => 0;
+EOE
+}
 
 use strict;
 
@@ -45,12 +58,6 @@ HELP
 # Note that the command startup file ${Devel::Trepan::CMD_INITFILE_BASE} is read automatically
 # via a ${NAME} command the debugger is started.
 
-
-use constant CATEGORY   => 'support';
-use constant SHORT_HELP => 'Read and run debugger commands from a file';
-our $MIN_ARGS     = 1;  # Need at least this many
-our $SHORT_HELP   = 'Read and run debugger commands from a file';
-
 use constant DEFAULT_OPTIONS => {
     abort_on_error => 0,
     confirm_val => 0,
@@ -58,13 +65,13 @@ use constant DEFAULT_OPTIONS => {
     verbose => 0
 };
 
-# sub complete($$) {
-#     my ($self, $prefix) = @_;
-#     my $files = Readline::FILENAME_COMPLETION_PROC.call(prefix) || []
-#     my $opts = (qw(-c --continue --no-continue -N --no -y --yes
-#               --verbose --no-verbose), $files);
-#     Devel::Trepan::Complete::complete_token($opts, $prefix) ;
-# }
+sub complete($$) {
+    my ($self, $prefix) = @_;
+    my @files = Devel::Trepan::Complete::filename_list($prefix);
+    my @opts = (qw(-c --continue --no --yes
+              --verbose --no-verbose), @files);
+    Devel::Trepan::Complete::complete_token(\@opts, $prefix) ;
+}
     
 sub parse_options($$)
 {
@@ -90,7 +97,6 @@ sub run($$)
     my $output  = $options->{quiet} ? Devel::Trepan::IO::OutputNull->new : 
 	$intf->[-1]{output};
 
-    # require Enbugger; Enbugger->stop;
     my $filename = $args->[-1];
     
     my $expanded_filename = abs_path(glob($filename));

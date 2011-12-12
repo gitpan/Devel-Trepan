@@ -7,6 +7,7 @@ no warnings 'once';
 use English qw( -no_match_vars );
 
 use constant SINGLE_STEPPING_EVENT =>  1;
+use constant NEXT_STEPPING_EVENT   =>  2;
 use constant DEEP_RECURSION_EVENT  =>  4;
 use constant RETURN_EVENT          => 32;
 
@@ -61,9 +62,9 @@ sub sub {
     $#stack = $stack_depth;
 
     # Save current single-step setting.
-    $stack[-1] = $single;
+    $stack[-1] = $DB::single;
 
-    # printf "\$DB::single for $sub: 0%x\n", $DB::single if $DB::single;
+    ## printf "++ \$DB::single for $sub: 0%x\n", $DB::single if $DB::single;
     # Turn off all flags except single-stepping or return event.
     $DB::single &= SINGLE_STEPPING_EVENT;
 
@@ -84,11 +85,11 @@ sub sub {
 	@ret = &$sub;
 
         # Pop the single-step value back off the stack.
-        $single |= $stack[ $stack_depth-- ];
+        $DB::single |= $stack[ $stack_depth-- ];
 	if ($single & RETURN_EVENT) {
 	    $DB::return_type = 'array';
 	    @DB::return_value = @ret;
-	    DB::DB() ;
+	    DB::DB($DB::sub) ;
 	    return @DB::return_value;
 	}
 	@ret;
@@ -105,11 +106,11 @@ sub sub {
 	}
 
         # Pop the single-step value back off the stack.
-        $single |= $stack[ $stack_depth-- ];
+        $single |= $stack[ $stack_depth-- ] if $stack[$stack_depth];
 	if ($single & RETURN_EVENT) {
 	    $DB::return_type = defined $ret ? 'scalar' : 'undef';
 	    $DB::return_value = $ret;
-	    DB::DB() ;
+	    DB::DB($DB::sub) ;
 	    return $DB::return_value;
 	}
 

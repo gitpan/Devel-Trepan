@@ -12,10 +12,16 @@ package Devel::Trepan::CmdProcessor::Command::Finish;
 use if !defined @ISA, Devel::Trepan::CmdProcessor::Command ;
 use vars qw(@ISA);
 unless (defined @ISA) {
-    eval "use constant ALIASES    => qw(fin)";
-    eval "use constant CATEGORY   => 'running'";
-    eval "use constant SHORT_HELP => 'Step to end of current method (step out)'";
+    eval <<'EOE';
+    use constant ALIASES    => qw(fin);
+    use constant CATEGORY   => 'running';
+    use constant SHORT_HELP => 'Step to end of current method (step out)';
+    use constant MIN_ARGS  => 0;  # Need at least this many
+    use constant MAX_ARGS  => 1;  # Need at most this many - undef -> unlimited.
+    use constant NEED_RUNNING => 1;
+EOE
 }
+
 use strict;
 @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
@@ -39,13 +45,15 @@ while 'break' will have less overhead.
 
 HELP
 
-local $NEED_RUNNING = 1;
-local $MAX_ARGS     = 1;  # Need at most this many
-
 # This method runs the command
 sub run($$) {
     my ($self, $args) = @_;
     my $proc = $self->{proc};
+
+    if ($self->{proc}{event} eq 'return') {
+	$proc->errmsg("Can't run ${NAME} while inside a return. Step and try again.");
+	return;
+    }
     
     my ($opts, $level_count) = ({}, 1);
     if (scalar @$args != 1) {
