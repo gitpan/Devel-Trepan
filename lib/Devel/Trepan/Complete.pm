@@ -1,6 +1,5 @@
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
-use strict;
-use warnings;
+use warnings; use strict; 
 use Exporter;
 
 
@@ -8,7 +7,7 @@ package Devel::Trepan::Complete;
 use vars qw(@ISA @EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(complete_token complete_token_with_next 
-             next_token
+             next_token signal_complete
              complete_token_filtered_with_next);
 
 # Return an Array of String found from Array of String
@@ -106,7 +105,8 @@ sub next_token($$)
 sub filename_list(;$$)
 {
     my ($pattern, $add_suffix) = @_;
-    $pattern //= ''; $add_suffix //= 0;
+    $pattern = '' unless defined $pattern; 
+    $add_suffix = 0 unless defined $add_suffix;
     # $pattern = glob($pattern) if substr($pattern, 0, 1) = '~';
     my @files = (<$pattern*>);
     if ($add_suffix) {
@@ -123,6 +123,21 @@ sub filename_list(;$$)
 	}
     }
     return @files;
+}
+
+# Custom completion routines
+my @signal_complete_completions=();
+sub signal_complete($) {
+    my ($prefix) = @_;
+    unless(@signal_complete_completions) {
+	@signal_complete_completions = keys %SIG;
+	my $last_sig = scalar @signal_complete_completions;
+	push(@signal_complete_completions, 
+	     map({lc $_} @signal_complete_completions));
+	my @nums = (-$last_sig .. $last_sig);
+	push @signal_complete_completions, @nums;
+    }
+    complete_token(\@signal_complete_completions, $prefix);
 }
 
 
@@ -153,6 +168,8 @@ unless (caller) {
     print join(', ', filename_list), "\n";
     print "List of filenames beginning with C:\n";
     print join(', ', filename_list('C')), "\n";
+
+    print join(', ', signal_complete('C')), "\n";
     # FIXME: We don't handle ~ expansion right now.
     #  print "List of filenames expanded from ~\n";
 }

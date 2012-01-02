@@ -1,12 +1,29 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
 use strict; use warnings;
-use feature 'switch';
 package Devel::Trepan::Util;
-use vars qw(@EXPORT @ISA);
+use vars qw(@EXPORT @ISA @YN);
 @EXPORT    = qw( hash_merge safe_repr uniq_abbrev extract_expression
-                 parse_eval_suffix);
+                 parse_eval_suffix YES NO YES_OR_NO @YN bool2YN);
 @ISA = qw(Exporter);
+
+use constant YES => qw(y yes oui si yep ja);
+@YN = YES;
+use constant NO => qw(n no non nope nein);
+push(@YN, NO);
+
+sub YN($) 
+{
+    my $response = shift;
+    !!grep(/^${response}$/i, @YN);
+}
+
+# Return 'Yes' for True and 'No' for False, and ?? for anything else
+sub bool2YN($)
+{ 
+    my $bool = shift;
+    $bool ? 'Yes' : 'No';
+}
 
 # Hash merge like Ruby has.
 sub hash_merge($$) {
@@ -64,7 +81,7 @@ sub extract_expression($)
     # } elsif ($text =~ /^\s*case\s+/) {
     #     # EXPRESSION in: case EXPESSION
     #     $text =~ s/^\s*case\s*//;
-    # } elsif ($text =~ /^\s*def\s*.*\(.+\)/) {
+    # } elsif ($text =~ /^\s*sub\s*.*\(.+\)/) {
     #     $text =~ s/^\s*sub\s*.*\((.*)\)/\(\1\)/;
     } elsif ($text =~ /^\s*[A-Za-z_][A-Za-z0-9_\[\]]*\s*=[^=>]/) {
         # RHS of an assignment statement.
@@ -143,8 +160,17 @@ unless (caller) {
     }
 
     for my $cmd (qw(eval eval$ eval% eval@ evaluate% none)) {
-	printf "parse_eval_suffix($cmd) => '%s'\n", parse_eval_suffix($cmd);
+	print "parse_eval_suffix($cmd) => '". parse_eval_suffix($cmd) . "'\n";
     }
+
+    for my $resp (qw(yes no Y NO nein nien huh?)) {
+	printf "YN($resp) => '%s'\n", YN($resp);
+    }
+    for my $resp (1, 0, '', 'Foo', undef) {
+	my $resp_str = defined $resp ? $resp : 'undef';
+	printf "bool2YN($resp_str) => '%s'\n", bool2YN($resp);
+    }
+
 }
 
 1;
