@@ -17,11 +17,11 @@ Hash: SHA1
 SHA1 be0627fff2e8aef3d2a14d5d7486babc8a4873ba Artistic
 SHA1 cb426ac65c5356918f218e9344949b4b346b37fe Build.PL
 SHA1 188da050b076a725a7edd2332dbaef32cc8df6e8 ChangeLog
-SHA1 6a5a31f53c43f2b5a72c3fc5e414c09a902df073 Changes
+SHA1 03a7bd4ed4ad7d3c0e498a6de2082e902c2fa82e Changes
 SHA1 067a2e4b5e1f36609f5aa66c5c12179cba00c36b GNUmakefile
 SHA1 7c4b376e92f0deb47e6efba4572907cdd7449d00 MANIFEST
-SHA1 d91782d080122f09b5d91c72aeabaa2835ea6c91 META.json
-SHA1 9d41ca4252a7a9cfd7858ba2d0dfd1ea62962c24 META.yml
+SHA1 be7bc2da481fe5abef1bb3f7719919d704651d07 META.json
+SHA1 1bcb934a66538396efe230cb07fbc1f548a189d1 META.yml
 SHA1 863a0aa64ee192619c23f98c8a35b206902e4fcd Makefile.PL
 SHA1 0b1b318cdcce2be61d9328c3066749bda3aad02c README
 SHA1 b40839f6c6200314b3a8a8524f673514cb8ae003 README.md
@@ -40,7 +40,7 @@ SHA1 462c8ae7d94573cb504636acf754ca8fa568f52f example/test-module.pm
 SHA1 913d2fbcebc4a2d38f702f2098a24451a857c6b7 example/test-require.pl
 SHA1 8624bcdae55baeef00cd11d5dfcfa60f68710a02 gpl-3.0.txt
 SHA1 e537e17774d82570366949756b8067c264cb24ab ignore.txt
-SHA1 5831f4fbec8dafb642c547549a63f9336900623b lib/Devel/Trepan.pm
+SHA1 dfe3217cbba72aaf76c24f0353c95f93c6749fd2 lib/Devel/Trepan.pm
 SHA1 3c49fd557de9b4e4aad29b432ba00d70ddff5768 lib/Devel/Trepan/BrkptMgr.pm
 SHA1 1f43dcef5bfe24f754210bbd556099aafc2f9922 lib/Devel/Trepan/Client.pm
 SHA1 d80613a9fe4649b861a732c4ce0b5f03e9923abf lib/Devel/Trepan/CmdProcessor.pm
@@ -180,7 +180,7 @@ SHA1 c8f04a2db2f73d199eb7f101d1be0a6960e23bfd lib/Devel/Trepan/Interface/ComCode
 SHA1 62346202dd85a1f8d93c71c03c109b9776f2200e lib/Devel/Trepan/Interface/Script.pm
 SHA1 86867a6720f7f52362a2704845786e781220a1f2 lib/Devel/Trepan/Interface/Server.pm
 SHA1 10820782b71e76b37147d2444a64f907f5f14499 lib/Devel/Trepan/Interface/User.pm
-SHA1 22e345631acb09667746aa749f67bbba809a23aa lib/Devel/Trepan/Options.pm
+SHA1 3b41fb083e9fa7c22be826fe42d6d897706fefe9 lib/Devel/Trepan/Options.pm
 SHA1 c978d38de5143c2bf030ff15bb73c86eca319084 lib/Devel/Trepan/Position.pm
 SHA1 9c70bfb1d39df58f0edc1a7937a4fc5fac476978 lib/Devel/Trepan/Psh.pm
 SHA1 5e1f2907b60b4ec4a9a851342851efb198d238ed lib/Devel/Trepan/SigHandler.pm
@@ -222,9 +222,9 @@ SHA1 40e3b9b82bb5b7a6462407e659a8f262a1f7d0a9 t/20test-seq1.t
 SHA1 a32ad54720dee81a21380c414f625c33089d278f t/20test-sig.t
 SHA1 af6a9f2d7d450de97b58a51e99dd8967fb35fa0d t/20test-step.t
 SHA1 47d97913c61655a29204ee3008413f35308d32b0 t/20test-trace.t
-SHA1 bdcc674b5ad1f7a34efb8c1267c9242d6509983f t/20test-trepanpl-opts.t
+SHA1 bf937fce6b9a22f476dd5ac59b9288de2c4265b9 t/20test-trepanpl-opts.t
 SHA1 04c5070db58484fe938f224895ad118b426c404b t/20test-watch1.t
-SHA1 37f79718545579fe0d5137178e4723559acee615 t/Helper.pm
+SHA1 b0ebe02c4dc4f9455719aab8307eda88df3bfd65 t/Helper.pm
 SHA1 02a9926197ed8ca705ece9acb3cf72dd3fe8a68b t/data/autolist.cmd
 SHA1 44e200499d4d4f8e74e73720b62fa530df820a2a t/data/autolist.right
 SHA1 7918e8f2c8e40b90c18968603d53a2f064759669 t/data/break.cmd
@@ -276,7 +276,7 @@ SHA1 afac5ef5cc6a4b8c9f6e122e809245451cb735e8 t/data/watch2.right
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEARECAAYFAk8BFs8ACgkQGo3lAIJ17CHl2wCfaE19tWNOjpwCTkGJoWyZv/YS
-fzgAoJvO7vMgNVuIKAemPV1Pbt3D/HTp
-=Cbgt
+iEYEARECAAYFAk8BekYACgkQGo3lAIJ17CGhhwCfd5ho6RDyZ75MUxMp8gZlOvr3
+4jYAn13hVc9Vzs+v4RnjA+hs1SGWLqce
+=1H8c
 -----END PGP SIGNATURE-----
