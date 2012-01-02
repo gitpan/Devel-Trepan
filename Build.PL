@@ -36,18 +36,18 @@ my $builder = Module::Build->new(
     },
     build_requires => {
         # 'String::Diff'        => 0,
-	# 'ExtUtils::PkgConfig' => 0, # Some String:Diff's flip out without this
     },
     requires => {
-	'perl'                              => '5.0080',               
+	'perl'                              => '5.0088',
 	'Array::Columnize'                  => '0.3.5',
 	'Data::Dumper::Perltidy'            => 0,
-        'Digest::SHA'                       => 0,
 	'Getopt::Long'                      => 0,
+        'Digest::SHA'                       => 0,
+        'Eval::WithLexicals'                => 0,
         'PadWalker'                         => 0,
-        'rlib'                              => '0.02',
         'Syntax::Highlight::Perl::Improved' => 0,
         'Test::More'                        => 0,
+        'rlib'                              => '0.02',
         'version'                           => 0,
     },
     sign                => ($ENV{PERL_MB_NOSIGN} ? 0 : 1),
