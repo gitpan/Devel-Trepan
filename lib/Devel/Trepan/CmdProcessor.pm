@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org> 
+# Copyright (C) 2011, 2012 Rocky Bernstein <rocky@cpan.org> 
 
 use rlib '../..';
 
@@ -14,7 +14,12 @@ use warnings; no warnings 'redefine';
 use vars qw(@EXPORT @ISA $eval_result);
 
 # Showing eval results can be done using either data dump package.
-use if !defined @ISA, Data::Dumper; require Data::Dumper::Perltidy;
+use if !defined @ISA, Data::Dumper; 
+
+# Eval does uses its own variables.
+# FIXME: have a way to customize Data:Dumper, PerlTidy etc.
+$Data::Dumper::Terse = 1; 
+require Data::Dumper::Perltidy;
 
 unless (defined @ISA) {
     require Devel::Trepan::CmdProcessor::Load;
@@ -34,7 +39,7 @@ unless (defined @ISA) {
 }
 use strict;
 
-use Devel::Trepan::Util qw(hash_merge uniq_abbrev);
+use Devel::Trepan::Util qw(hash_merge uniq_abbrev parse_eval_sigil);
 
 @ISA = qw(Exporter);
 
@@ -48,7 +53,9 @@ sub new($;$$$) {
     if (defined $interfaces) {
 	$intf = $interfaces->[0];
     } else {
-	$intf = Devel::Trepan::Interface::User->new;
+	$intf = Devel::Trepan::Interface::User->new(undef, undef, 
+						    {readline => 
+						    $settings->{readline}});
 	$interfaces = [$intf];
     }
     my $self = Devel::Trepan::CmdProcessor::Virtual::new($class, $interfaces, $settings);
@@ -214,16 +221,31 @@ sub process_after_eval($) {
     # Perltidy::Dumper uses Tidy which looks at @ARGV for filenames.
     # Having a non-empty @ARGV will cause Tidy to croak.
     local @ARGV=();
-    
-    my $fn = ($self->{settings}{evaldisplay} eq 'tidy') 
-	    ? \&Data::Dumper::Perltidy::Dumper
-	    : \&Data::Dumper::Dumper;
+
+    my $fn;
+    my $print_properties = {};
+    my $evdisp = $self->{settings}{evaldisplay};
+    if ('tidy' eq $evdisp) {
+	$fn = \&Data::Dumper::Perltidy::Dumper;
+    } elsif ('dprint' eq $evdisp) {
+	$print_properties = {
+	    colored => $self->{settings}{highlight},
+	};
+	$fn = \&dprint;
+    } else {
+	$fn = \&Data::Dumper::Dumper;
+    }
     my $return_type = $DB::eval_opts->{return_type};
     $return_type = '' unless defined $return_type;
     if ('$' eq $return_type) {
 	    if (defined $DB::eval_result) {
 		$DB::D[$last_eval_value++] = $DB::eval_result;
-		$val_str = $fn->($DB::eval_result);
+		if ('dprint' eq $evdisp) {
+		    $val_str = 
+			$fn->(\$DB::eval_result, %$print_properties);
+		} else {
+		    $val_str = $fn->($DB::eval_result);
+		}
 		chomp $val_str;
 	    } else {
 		$DB::eval_result = '<undef>' ;
@@ -241,7 +263,11 @@ sub process_after_eval($) {
     } elsif ('%' eq $return_type) {
 	    if (%DB::eval_result) {
 		$DB::D[$last_eval_value++] = \%DB::eval_result;
-		$val_str = $fn->(%DB::eval_result);
+		if ('dprint' eq $evdisp) {
+		    $val_str = $fn->(\%DB::eval_result, %$print_properties);
+		} else {
+		    $val_str = $fn->(%DB::eval_result);
+		}
 		chomp $val_str;
 	    } else {
 		$val_str = '<undef>'
@@ -249,8 +275,13 @@ sub process_after_eval($) {
 	    $self->msg("$prefix\n\%{$val_str}");
     }  else {
 	    if (defined $DB::eval_result) {
-		$DB::D[$last_eval_value++] = $fn->($DB::eval_result);
-		$val_str = $fn->($DB::eval_result);
+		if ('dprint' eq $evdisp) {
+		    $val_str = $DB::D[$last_eval_value++] = 
+			$fn->(\$DB::eval_result, %$print_properties);
+		} else {
+		    $val_str = $DB::D[$last_eval_value++] = 
+			$fn->($DB::eval_result);
+		}
 		chomp $val_str;
 	    } else {
 		$val_str = '<undef>'
@@ -420,10 +451,9 @@ sub run_command($$)
     # Eval anything that's not a command or has been
     # requested to be eval'd
     if ($self->{settings}{autoeval} || $eval_command) {
-	my $opts = {nest => 0, return_type => '$'};
-	if ($current_command =~ /^\s*([%\$\@])/) {
-	    $opts->{return_type} = $1;
-	}
+	my $return_type = parse_eval_sigil($current_command);
+	$return_type = '$' unless $return_type;
+	my $opts = {nest => 0, return_type => $return_type};
 
 	# FIXME: 2 below is a magic fixup constant, also found in
 	# DB::finish.  Remove it.
