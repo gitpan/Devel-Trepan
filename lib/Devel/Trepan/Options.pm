@@ -6,7 +6,7 @@ use Getopt::Long qw(GetOptionsFromArray);
 use Pod::Usage;
 use Pod::Find qw(pod_where);
 use File::Spec;
-use rlib '../..';
+use rlib;
 
 use vars qw(@EXPORT $DEFAULT_OPTIONS $PROGRAM_NAME $VERSION
             $HAVE_DATA_PRINT $HAVE_PERLTIDY);
@@ -17,7 +17,7 @@ our @ISA;
 
 BEGIN {
     $PROGRAM_NAME = 'trepan.pl';
-    $VERSION      = '0.1.9';
+    $VERSION      = '0.2.0';
 }
 
 use constant VERSION => $VERSION;

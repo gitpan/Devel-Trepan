@@ -10,9 +10,9 @@ use rlib '../../..';
 package Devel::Trepan::Interface::User;
 use vars qw(@EXPORT @ISA);
 
-use if !defined(@ISA), Devel::Trepan::Util; # qw(hash_merge YN);
-use if !defined(@ISA), Devel::Trepan::IO::Input;
-use if !defined(@ISA), Devel::Trepan::Interface;
+use if !@ISA, Devel::Trepan::Util; # qw(hash_merge YN);
+use if !@ISA, Devel::Trepan::IO::Input;
+use if !@ISA, Devel::Trepan::Interface;
 
 @ISA = qw(Devel::Trepan::Interface Exporter);
 use strict; 
@@ -67,6 +67,7 @@ sub add_history($$)
 sub remove_history($;$)
 {
     my ($self, $which) = @_;
+    $which = -1 unless defined($which);
     return unless ($self->{input}{readline});
     if ($self->{input}{readline}->can("where_history")) {
 	my $where_history = $self->{input}{readline}->where_history();
