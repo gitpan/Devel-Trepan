@@ -1,18 +1,24 @@
 Devel::Trepan -- A new Perl debugger
 ====================================
 
-A modular, testable debugger in the style of the Ruby ["Trepanning"](https://github.com/rocky/rb-trepanning/wiki) [debuggers](https://github.com/rocky/rb-trepanning/wiki).
+A modular, testable debugger in the family of the Ruby ["Trepanning"](https://github.com/rocky/rb-trepanning/wiki) [debuggers](https://github.com/rocky/rb-trepanning/wiki).
+
+It has extensive online-help, supports syntax highlighting via
+Syntax::Highlight::Perl::Improved, command completion and
+history via GNU ReadLine via L<Term::ReadLine::Perl> or
+Term::ReadLine::Gnu, and interactive shell support via Psh or
+Devel::REPL.
 
 SYNOPSIS
 --------
 
 From a shell: 
 
-        bash$ trepan.pl [trepan-opts] perl-program [perl-program-opts]
+        $ trepan.pl [trepan-opts] perl-program [perl-program-opts]
 
 Or for those who prefer the traditional Perlish way:
 
-        bash$ perl -d:Trepan perl-program [perl-program-opts]
+        $ perl -d:Trepan perl-program [perl-program-opts]
 
 Calling the debugger from inside your Perl program using Joshua ben
 Jore's [Enbugger](http://search.cpan.org/~jjore/Enbugger/):
