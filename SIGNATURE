@@ -16,12 +16,12 @@ Hash: SHA1
 
 SHA1 be0627fff2e8aef3d2a14d5d7486babc8a4873ba Artistic
 SHA1 4d1918c9205d0c4a0504b8db967ddd989970487a Build.PL
-SHA1 abf64782f2c884fc12bfc168c34ba208ef4f119c ChangeLog
-SHA1 f3a0f289247718122a98b95b5770fe62d8fcefc0 Changes
+SHA1 d69782a4ad8ad1ecc2a39bfa4524251f4b8fa511 ChangeLog
+SHA1 1dc87c114dec355213f531dbbfdb7714942a2b2e Changes
 SHA1 067a2e4b5e1f36609f5aa66c5c12179cba00c36b GNUmakefile
 SHA1 ed4ddcc5d273b1d4e3c3f91962c681c232e65bc8 MANIFEST
-SHA1 07e233063c4a97572dd110ec38963958d8d3a0f3 META.json
-SHA1 4c0c27fd7f4a18500b62024cdb1fa4889bea71d8 META.yml
+SHA1 679ab8a9f718c56d6028dda54b8594fe4460b4fd META.json
+SHA1 63197387d0fd6a97bce825e3575e11c08bc505ae META.yml
 SHA1 4392538543b935c8622117536db605dbab481958 Makefile.PL
 SHA1 27e0506f65b8b9b1e9b3c524d4695c54ba81cf91 README
 SHA1 ee83868a72b6f539417dae15b0643fc3ce0c4625 README.md
@@ -41,7 +41,7 @@ SHA1 462c8ae7d94573cb504636acf754ca8fa568f52f example/test-module.pm
 SHA1 913d2fbcebc4a2d38f702f2098a24451a857c6b7 example/test-require.pl
 SHA1 8624bcdae55baeef00cd11d5dfcfa60f68710a02 gpl-3.0.txt
 SHA1 e537e17774d82570366949756b8067c264cb24ab ignore.txt
-SHA1 e0e6edb2e78fa8abd4403f5f83860d5b0e2ec75c lib/Devel/Trepan.pm
+SHA1 b8d39dd041c2e33817f40f660ffa6ca628a3e489 lib/Devel/Trepan.pm
 SHA1 3c49fd557de9b4e4aad29b432ba00d70ddff5768 lib/Devel/Trepan/BrkptMgr.pm
 SHA1 3e4653841bd8068f6178903e3c9020e5c282fe87 lib/Devel/Trepan/Client.pm
 SHA1 9ac5d8d54c457c73b4aca77c0394655c208ccddd lib/Devel/Trepan/CmdProcessor.pm
@@ -188,7 +188,7 @@ SHA1 c8f04a2db2f73d199eb7f101d1be0a6960e23bfd lib/Devel/Trepan/Interface/ComCode
 SHA1 5a7935cf17007cc9f03734ef1a3bbe466827ef0f lib/Devel/Trepan/Interface/Script.pm
 SHA1 bc9318bde7b7a98d52203ecfa4d3ab9683faad18 lib/Devel/Trepan/Interface/Server.pm
 SHA1 c29574dbdb35639a585307a9d151ba36f0e223bd lib/Devel/Trepan/Interface/User.pm
-SHA1 62e5bc52d15d2390e893e139e7093f29e9401aca lib/Devel/Trepan/Options.pm
+SHA1 1a01c28312fb0df18a017c6119a97816667df32b lib/Devel/Trepan/Options.pm
 SHA1 c978d38de5143c2bf030ff15bb73c86eca319084 lib/Devel/Trepan/Position.pm
 SHA1 1a20c007933ce92fe106b55424286a101896e6d8 lib/Devel/Trepan/SigHandler.pm
 SHA1 db7e5f2ddfba61f95bc3c65ccc3b89fa3385d620 lib/Devel/Trepan/Util.pm
@@ -220,10 +220,10 @@ SHA1 4fdad6b2125dd1f26584730c8dcb6a103e971503 t/20test-alias.t
 SHA1 5f226515eae919ab5040c01975d7fe3605fdcfe1 t/20test-autolist.t
 SHA1 5663aa941bad03dd4246bb1d0728cea0bcc17459 t/20test-break.t
 SHA1 00e6f5467cec2d2d9c027305b64d4f22f405c7f2 t/20test-cont.t
-SHA1 4cad38e9618a64859c27664e5e88cf7c3d31dab8 t/20test-debug.t
+SHA1 a856ddd567b8df21aefef56bfd3c0378414b1e0a t/20test-debug.t
 SHA1 4fdad6b2125dd1f26584730c8dcb6a103e971503 t/20test-display.t
 SHA1 cb2eea2e538df8f069be371528f662e983b514d7 t/20test-dollar0.t
-SHA1 bbef5ab1584a187845d9c9620bfb7bea4abd31f2 t/20test-eval.t
+SHA1 9f2fa6cab8952df8e881335600376549dc522bf5 t/20test-eval.t
 SHA1 33ad86c723c0bf8743722544f3e475b7e330ae9f t/20test-fin.t
 SHA1 158cdc86ad3d27ff4d937eb7795b65012d04d33f t/20test-line.t
 SHA1 eb3c4393eff6c5546083acddaace74fb42bb5aa3 t/20test-list1.t
@@ -240,7 +240,7 @@ SHA1 73e9f64038062b4630e79229a1c66d4b1b71fff7 t/20test-step.t
 SHA1 bcd24b5e6a6f914dacf8daaa7ad501bc12f249f5 t/20test-trace.t
 SHA1 9624d87434cf2dd0a3ffdaf510722b012fd4b257 t/20test-trepanpl-opts.t
 SHA1 799aa07cc3d5fab9c125dcbded3f1201c0468216 t/20test-watch1.t
-SHA1 01c350547f7ec4fbc82d67623a1ce28b6c0185e1 t/Helper.pm
+SHA1 8d71e28a844b51cc48b7a570fb794e43838dee45 t/Helper.pm
 SHA1 f9d4ed866bc5aa911f27a684c921f0b9247d3143 t/data/__FILE__.cmd
 SHA1 3db4dd8d13eada713df8103f49fdcc252c83c539 t/data/__FILE__.right
 SHA1 2b0f7d4b364ccfc07916874a134151ecfd42dbb4 t/data/alias.cmd
@@ -304,7 +304,7 @@ SHA1 8c623a7f98f9703e5b324e49c95a59449b642dea t/data/watch2.right
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEARECAAYFAlAxjbQACgkQGo3lAIJ17CGRKQCfWGMZo9v+2jXeQI/cY2c19i1T
-Zv4AoISYYvRwQ0j0kyDRrpiZ9XPrm+29
-=L80q
+iEYEARECAAYFAlAzDjkACgkQGo3lAIJ17CFFiACfUtYhI5WdCaVxpN+URY6dQLl0
+Z+kAoIhMRj9qKd7y8WIAmtDDfOP+GbhC
+=lafx
 -----END PGP SIGNATURE-----
