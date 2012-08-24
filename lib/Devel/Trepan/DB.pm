@@ -30,6 +30,7 @@ use English qw( -no_match_vars );
 
 use vars qw($usrctxt $running $caller
             $event @ret $ret $return_value @return_value
+            $eval_opts $eval_str
             $fall_off_on_end
             $stop @clients $ready $tid
             $init_dollar0 $OS_STARTUP_DIR);
@@ -55,31 +56,38 @@ use Cwd;
 BEGIN {
     no warnings 'once';
     $ini_warn = $WARNING;
-    @ini_INC = @INC;       # Save the contents of @INC before they are modified elsewhere.
-    @ini_ARGV = @ARGV;
-    $ini_dollar0 = $0;
-    $OS_STARTUP_DIR = getcwd;
 
     # these are hardcoded in perl source (some are magical)
     
-    $DB::sub     = '';    # name of current subroutine
-    $DB::single  = 0;     # single-step flags. See constants at the 
-                          # top of DB/Sub.pm
-    $DB::signal  = 0;     # signal flag (will cause a stop at the next line)
-    $DB::stop    = 0;     # value of last breakpoint condition evaluation
-    $DB::tid     = undef; # Thread id
-    $DB::fall_off_on_end = 0;
+    $DB::sub      = '';    # name of current subroutine
+    $DB::single   = 0;     # single-step flags. See constants at the 
+                           # top of DB/Sub.pm
+    $DB::signal   = 0;     # signal flag (will cause a stop at the next line)
+    $DB::stop     = 0;     # value of last breakpoint condition evaluation
 
-    @DB::args    = ();    # arguments of current subroutine or @ARGV array
-    @DB::dbline  = ();    # list of lines in currently loaded file
-    %DB::dbline  = ();    # actions in current file (keyed by line number)
-    @DB::clients = ();
-    
+    @DB::dbline   = ();    # list of lines in currently loaded file
+    %DB::dbline   = ();    # actions in current file (keyed by line number)
+
     # other "public" globals  
+
+    @ini_INC        = @INC; # Save the contents of @INC before they are
+			    # modified elsewhere.
+    @ini_ARGV       = @ARGV;
+    $ini_dollar0    = $0;
+    $OS_STARTUP_DIR = getcwd;
+
+    @DB::args     = ();    # arguments of current subroutine or @ARGV array
+    $DB::fall_off_on_end = 0;
+    @DB::clients  = ();
+    $eval_opts    = {};    # Options controlling how the client wants the
+                           # eval to take place
+    $DB::tid      = undef; # Thread id
     
-    $DB::package = '';    # current package space
-    $DB::filename = '';   # current filename
-    $DB::subname = '';    # currently executing sub (fully qualified name)
+    $DB::eval_str = '';    # Client wants to eval this string
+    
+    $DB::package  = '';    # current package space
+    $DB::filename = '';    # current filename
+    $DB::subname  = '';    # currently executing sub (fully qualified name)
 
     # This variable records how many levels we're nested in debugging. Used
     # Used in the debugger prompt, and in determining whether it's all over or
@@ -100,7 +108,7 @@ BEGIN {
 
     $DB::event = undef;  # The reason we have entered the debugger
     
-    $DB::VERSION = '1.03';
+    $DB::VERSION = '1.04';
     
     # initialize private globals to avoid warnings
     
@@ -238,7 +246,9 @@ sub DB {
 	    } else  {
 		my $eval_str = sprintf("\$DB::stop = do { %s; }", 
 				       $brkpt->condition);
-		&DB::eval($usrctxt, $eval_str, @saved);
+		&DB::eval_with_return($usrctxt, $eval_str, 
+				      {return_type => '!'}, # ignore return
+				      @saved);
 	    }
 	    if ($stop && $brkpt->enabled) {
 		$DB::signal |= 1;
