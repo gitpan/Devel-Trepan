@@ -50,7 +50,7 @@ sub idle($$$)
 {
     my ($self, $event, $args) = @_;
     my $proc = $self->{proc};
-    $event = 'terminated' if $DB::package eq 'DB::fake';
+    $event = 'terminated' if $DB::package eq 'Devel::Trepan::Terminated';
     if ($self->{need_e_remap} && $DB::filename eq '-e') {
 	DB::LineCache::remap_dbline_to_file();
 	$self->{need_e_remap} = 0;
@@ -172,6 +172,7 @@ sub awaken($;$) {
 	    add_startup_files($cmdproc, $opts->{initfile}, 1);
 	}
     }
+    $cmdproc->{skip_count} = -1 if $opts->{traceprint};
     $self->{sigmgr} = 
 	Devel::Trepan::SigMgr->new(sub{ $DB::running = 0; $DB::single = 0;
 					$self->signal_handler(@_) },
