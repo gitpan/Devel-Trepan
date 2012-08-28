@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
 use rlib '../../../..';
@@ -41,7 +41,7 @@ With an integer argument, step that many times.  With an 'until'
 expression that expression is evaluated and we stop the first time it
 is true.
 
-A suffix of '+' on a command or an alias forces a move to another
+A suffix of '+' in a command or an alias forces a move to another
 position, while a suffix of '-' disables this requirement.  A suffix
 of '>' will continue until the next call. ('finish' will run run until
 the return for that call.)
@@ -62,10 +62,6 @@ Examples:
 
 Related and similar is the 'next' (step over) and 'finish' (step out)
 commands.  All of these are slower than running to a breakpoint.
-
-See also the commands:
-'skip', 'jump' (there is no 'hop' yet), 'continue', 'return' and
-'finish' for other ways to progress execution.
 HELP
 
 my $Keyword_to_related_cmd = {
@@ -90,7 +86,7 @@ sub run($$) {
 	my $replace_cmd = $Keyword_to_related_cmd->{$args->[1]};
 	if (defined($replace_cmd)) {
 	    my $cmd = $proc->{commands}{$replace_cmd};
-	    return $cmd->run( ($replace_cmd, splice($args, 2)) );
+	    return $cmd->run( ($replace_cmd, splice(@$args, 2)) );
     #   } elsif ('until' eq $args->[1]) {
     #     my $try_condition = join(@$args[2..-1], ' ');
     #     if (valid_condition?(try_condition)) {
