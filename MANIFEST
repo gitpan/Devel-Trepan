@@ -44,12 +44,12 @@ lib/Devel/Trepan/CmdProcessor/Command/Finish.pm
 lib/Devel/Trepan/CmdProcessor/Command/Frame.pm
 lib/Devel/Trepan/CmdProcessor/Command/Handle.pm
 lib/Devel/Trepan/CmdProcessor/Command/Help.pm
-lib/Devel/Trepan/CmdProcessor/Command/Help/command.txt
-lib/Devel/Trepan/CmdProcessor/Command/Help/examples.txt
-lib/Devel/Trepan/CmdProcessor/Command/Help/filename.txt
-lib/Devel/Trepan/CmdProcessor/Command/Help/location.txt
+lib/Devel/Trepan/CmdProcessor/Command/Help/command.pod
+lib/Devel/Trepan/CmdProcessor/Command/Help/examples.pod
+lib/Devel/Trepan/CmdProcessor/Command/Help/filename.pod
+lib/Devel/Trepan/CmdProcessor/Command/Help/location.pod
 lib/Devel/Trepan/CmdProcessor/Command/Help/README
-lib/Devel/Trepan/CmdProcessor/Command/Help/suffixes.txt
+lib/Devel/Trepan/CmdProcessor/Command/Help/suffixes.pod
 lib/Devel/Trepan/CmdProcessor/Command/Info.pm
 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Breakpoints.pm
 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Files.pm
@@ -61,13 +61,15 @@ lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Program.pm
 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Return.pm
 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Signals.pm
 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Variables.pm
-lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Variables_Subcmd/Dump.pm
 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Variables_Subcmd/Lexicals.pm
 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Variables_Subcmd/My.pm
 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Variables_Subcmd/Our.pm
 lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Watch.pm
 lib/Devel/Trepan/CmdProcessor/Command/Kill.pm
 lib/Devel/Trepan/CmdProcessor/Command/List.pm
+lib/Devel/Trepan/CmdProcessor/Command/Load.pm
+lib/Devel/Trepan/CmdProcessor/Command/Load_Subcmd/Command.pm
+lib/Devel/Trepan/CmdProcessor/Command/Load_Subcmd/Module.pm
 lib/Devel/Trepan/CmdProcessor/Command/Macro.pm
 lib/Devel/Trepan/CmdProcessor/Command/Next.pm
 lib/Devel/Trepan/CmdProcessor/Command/Quit.pm
@@ -86,7 +88,7 @@ lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Debug_Subcmd/Macro.pm
 lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Debug_Subcmd/Skip.pm
 lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Different.pm
 lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Display.pm
-lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Display_Subcmd/COP.pm
+lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Display_Subcmd/OP.pm
 lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Display_Subcmd/Eval.pm
 lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Highlight.pm
 lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Max.pm
@@ -113,7 +115,7 @@ lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Debug_Subcmd/Except.pm
 lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Debug_Subcmd/Macro.pm
 lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Debug_Subcmd/Skip.pm
 lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Display.pm
-lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Display_Subcmd/COP.pm
+lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Display_Subcmd/OP.pm
 lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Display_Subcmd/Eval.pm
 lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Different.pm
 lib/Devel/Trepan/CmdProcessor/Command/Show_Subcmd/Highlight.pm
@@ -177,8 +179,10 @@ lib/Devel/Trepan/IO/TCPClient.pm
 lib/Devel/Trepan/IO/TCPPack.pm
 lib/Devel/Trepan/IO/TCPServer.pm
 lib/Devel/Trepan/Options.pm
+lib/Devel/Trepan/Pod2Text.pm
 lib/Devel/Trepan/Position.pm
 lib/Devel/Trepan/SigHandler.pm
+lib/Devel/Trepan/Terminated.pm
 lib/Devel/Trepan/Util.pm
 lib/Devel/Trepan/WatchMgr.pm
 Makefile.PL
@@ -191,9 +195,11 @@ t/00test-pod.t
 t/10test-brkptmgr.t
 t/10test-cmd-complete.t		Note: t/10*.t tests are unit tests
 t/10test-cmd-kill.t
+t/10test-cmd-macro.t
 t/10test-complete.t
 t/10test-condition.t
 t/10test-db-brkpt.t
+t/10test-db-eval.t
 t/10test-intf-script.t
 t/10test-intf-user.t
 t/10test-io-output.t
@@ -202,6 +208,7 @@ t/10test-io-tcppack.t
 t/10test-linecache.t
 t/10test-load.t
 t/10test-options.t
+t/10test-pod2text.t
 t/10test-position.t
 t/10test-proc-default.t
 t/10test-proc-hook.t

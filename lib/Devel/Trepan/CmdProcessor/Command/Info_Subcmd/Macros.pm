@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011 Rocky Bernstein <rockbcpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 
 use warnings; no warnings 'redefine'; no warnings 'once';
 use rlib '../../../../..';
@@ -12,11 +12,15 @@ use Devel::Trepan::CmdProcessor::Command::Subcmd::Core;
 use vars @Devel::Trepan::CmdProcessor::Command::Subcmd::SUBCMD_VARS;
 
 use constant MAX_ARGS => undef;  # Need at most this many - undef -> unlimited.
-our $CMD = "info macros";
-our $HELP         = <<"EOH";
-${CMD} 
-${CMD} *
-${CMD} MACRO1 [MACRO2 ..]
+our $CMD  = "info macros";
+our $HELP = <<'HELP';
+=pod
+
+info macros 
+
+info macros *
+
+info macros I<macro1> [I<macro2> ..]
 
 In the first form a list of the existing macro names are shown
 in column format.
@@ -24,11 +28,12 @@ in column format.
 In the second form, all macro names and their definitions are shown.
 
 In the last form the only definitions of the given macro names is shown.
-show macro [NAME1 NAME2 ...] 
+show macro [I<name1> I<name2> ...] 
 
 If macros names are given, show their definition. If left blank, show
-all macro names
-EOH
+all macro names.
+=cut
+HELP
 
 our $MIN_ABBREV = length('ma');
 our $SHORT_HELP = "Show defined macros";
@@ -45,25 +50,25 @@ sub run($$) {
     my $proc = $self->{proc};
     my @args = @$args;
     if (scalar(@args) > 2) {
-    	shift @args; shift @args;
-    	for my $macro_name (@args) {
-    	    if (exists $proc->{macros}{$macro_name}) {
-    		my $msg = sprintf("%s: %s", $macro_name, 
-				  $proc->{macros}{$macro_name}->[1]);
-    		$proc->msg($msg);
-    	    } else {
-    		$proc->msg("$macro_name is not a defined macro");
-    	    }
-    	}
+        shift @args; shift @args;
+        for my $macro_name (@args) {
+            if (exists $proc->{macros}{$macro_name}) {
+                my $msg = sprintf("%s: %s", $macro_name, 
+                                  $proc->{macros}{$macro_name}->[1]);
+                $proc->msg($msg);
+            } else {
+                $proc->msg("$macro_name is not a defined macro");
+            }
+        }
     } else {
-	my @macros = keys %{$proc->{macros}};
-	if (scalar @macros == 0) {
-	    $proc->msg("No macros defined.");
-	} else {
-	    $proc->section("List of macro names currently defined:");
-	    my @cmds = sort @macros;
-	    $proc->msg($self->{cmd}->columnize_commands(\@cmds));
-	}
+        my @macros = keys %{$proc->{macros}};
+        if (scalar @macros == 0) {
+            $proc->msg("No macros defined.");
+        } else {
+            $proc->section("List of macro names currently defined:");
+            my @cmds = sort @macros;
+            $proc->msg($self->{cmd}->columnize_commands(\@cmds));
+        }
    }
 }
 

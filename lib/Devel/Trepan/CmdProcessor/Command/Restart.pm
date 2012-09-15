@@ -1,4 +1,4 @@
-# Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 # Code adapted from Perl 5's perl5db.pl
 # -*- coding: utf-8 -*-
 use warnings; no warnings 'redefine';
@@ -25,11 +25,14 @@ use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
 our $HELP = <<"HELP";
-$NAME 
+=pod
 
-Restart debugger and program via an exec call.
+B<restart>
 
-See also 'show args' for the exact invocation that will be used.
+Restart debugger and program via an I<exec()> call.
+
+See also C<show args> for the exact invocation that will be used.
+=cut
 HELP
 
 # This method runs the command

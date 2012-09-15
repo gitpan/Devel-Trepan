@@ -1,4 +1,4 @@
-# Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
 use rlib '../../../..';
@@ -20,13 +20,16 @@ use strict; use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
-${NAME} [COUNT]
+our $HELP = <<'HELP';
+=pod
+
+down [I<count>]
 
 Move the current frame down in the stack trace (to a newer frame). 0
 is the most recent frame. If no count is given, move down 1.
 
-See also 'up' and 'frame'.
+See also C<up> and C<frame>.
+=cut
 HELP
 
 sub complete($$)
@@ -44,10 +47,10 @@ sub run($$)
     $count_str = 1 unless defined $count_str;
     my ($low, $high) = $proc->frame_low_high(0);
     my $opts= {
-	'msg_on_error' => 
-	    "The '${NAME}' command requires a frame number. Got: ${count_str}",
-	min_value => $low, 
-	max_value => $high
+        'msg_on_error' => 
+            "The '${NAME}' command requires a frame number. Got: ${count_str}",
+        min_value => $low, 
+        max_value => $high
     };
     my $count = $proc->get_an_int($count_str, $opts);
     return unless defined $count;

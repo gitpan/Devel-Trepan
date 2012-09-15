@@ -216,85 +216,6 @@ sub process_command_and_quit($)
     }
 }
 
-my $last_eval_value = 0;
-
-sub process_after_eval($) {
-    my ($self) = @_;
-    my $val_str;
-    my $prefix="\$DB::D[$last_eval_value] =";
-    
-    # Perltidy::Dumper uses Tidy which looks at @ARGV for filenames.
-    # Having a non-empty @ARGV will cause Tidy to croak.
-    local @ARGV=();
-
-    my $fn;
-    my $print_properties = {};
-    my $evdisp = $self->{settings}{displayeval};
-    if ('tidy' eq $evdisp) {
-        $fn = \&Data::Dumper::Perltidy::Dumper;
-    } elsif ('dprint' eq $evdisp) {
-        $print_properties = {
-            colored => $self->{settings}{highlight},
-        };
-        $fn = \&dprint;
-    } else {
-        $fn = \&Data::Dumper::Dumper;
-    }
-    my $return_type = $DB::eval_opts->{return_type};
-    $return_type = '' unless defined $return_type;
-    if ('$' eq $return_type) {
-            if (defined $DB::eval_result) {
-                $DB::D[$last_eval_value++] = $DB::eval_result;
-                if ('dprint' eq $evdisp) {
-                    $val_str = 
-                        $fn->(\$DB::eval_result, %$print_properties);
-                } else {
-                    $val_str = $fn->($DB::eval_result);
-                }
-                chomp $val_str;
-            } else {
-                $DB::eval_result = '<undef>' ;
-            }
-            $self->msg("$prefix $DB::eval_result");
-    } elsif ('@' eq $return_type) {
-            if (@DB::eval_result) {
-                $val_str = $fn->(\@DB::eval_result);
-                chomp $val_str;
-                @{$DB::D[$last_eval_value++]} = @DB::eval_result;
-            } else {
-                $val_str = '<undef>'
-            }
-            $self->msg("$prefix\n\@\{$val_str}");
-    } elsif ('>' eq $return_type || '2>' eq $return_type ) {
-        $self->msg($DB::eval_result);
-    }  else {
-            if (defined $DB::eval_result) {
-                if ('dprint' eq $evdisp) {
-                    $val_str = $DB::D[$last_eval_value++] = 
-                        $fn->(\$DB::eval_result, %$print_properties);
-                } else {
-                    $val_str = $DB::D[$last_eval_value++] = 
-                        $fn->($DB::eval_result);
-                }
-                chomp $val_str;
-            } else {
-                $val_str = '<undef>'
-            }
-            $self->msg("$prefix ${val_str}");
-    }
-    
-    if (defined($self->{set_wp})) {
-            $self->{set_wp}->old_value($DB::eval_result);
-            $self->{set_wp} = undef;
-    }
-    
-    $DB::eval_opts = {
-            return_type => '',
-    };
-    $DB::eval_result = undef;
-    @DB::eval_result = undef;
-}
-
 sub skip_if_next($$) 
 {
     my ($self, $event) = @_;
@@ -320,7 +241,7 @@ sub process_commands($$$;$)
     
     my $next_skip = 0;
     if ($event eq 'after_eval' or $event eq 'after_nest') {
-        process_after_eval($self);
+        handle_eval_result($self);
         if ($event eq 'after_nest') {
             $self->msg("Leaving nested debug level $DB::level");
             $self->{prompt} = compute_prompt($self);
@@ -333,7 +254,7 @@ sub process_commands($$$;$)
         $self->frame_setup();
 
         if ($event eq 'watch') {
-            my $msg = sprintf("Watchpoint %s: `%s' changed", 
+            my $msg = sprintf("Watchpoint %s: %s changed", 
                               $arg->id, $arg->expr);
             $self->section($msg);
             my $old_value = defined($arg->old_value) ? $arg->old_value 
@@ -409,8 +330,7 @@ sub process_commands($$$;$)
         $self->{last_tid} = $DB::tid;
         $DB::single       = $self->{DB_single};
     }
-    $DB::running      = $self->{DB_running};
-
+    $DB::running = $self->{DB_running};
 }
 
 # run current_command, a string. @last_command is set after the
@@ -420,9 +340,6 @@ sub run_command($$)
     my ($self, $current_command) = @_;
     my $eval_command = undef;
     my $cmd_name = undef;
-    if (substr($current_command, 0, 1) eq '!') {
-        $eval_command = substr($current_command, 1);
-    }
     my @cmd_queue = @{$self->{cmd_queue}};
     unless ($eval_command) {
         my @commands = split(';;', $current_command);
@@ -440,10 +357,10 @@ sub run_command($$)
             return if scalar(@args) == 0;
             my $macro_cmd_name = $args[0];
             last unless $self->{macros}{$macro_cmd_name};
-	    my $debugging = $self->{settings}{debugmacro};
-	    # if ($debugging) {
-	    # 	require Enbugger; Enbugger->stop();
-	    # }
+            my $debugging = $self->{settings}{debugmacro};
+            # if ($debugging) {
+            #   require Enbugger; Enbugger->stop();
+            # }
             shift @args;
             my $macro_expanded = 
                 $self->{macros}{$macro_cmd_name}[0]->(@args);
@@ -451,17 +368,17 @@ sub run_command($$)
 #               current_command.all? {|val| val.is_a?(String)}
                 ) {
                 my @new_commands = @{$macro_expanded};
-		$self->msg(join(' ', @new_commands)) if $debugging;
-		if (scalar @new_commands > 0) {
-		    push @cmd_queue, @new_commands;
-		    $current_command = shift @cmd_queue;
-		    @args = split(' ', $current_command);
-		} else {
-		    $current_command = '#';
-		    @args = ();
-		}
+                $self->msg(join(' ', @new_commands)) if $debugging;
+                if (scalar @new_commands > 0) {
+                    push @cmd_queue, @new_commands;
+                    $current_command = shift @cmd_queue;
+                    @args = split(' ', $current_command);
+                } else {
+                    $current_command = '#';
+                    @args = ();
+                }
             } else {
-		$self->msg($macro_expanded) if $debugging;
+                $self->msg($macro_expanded) if $debugging;
                 $current_command = $macro_expanded;
                 @args = split(/\s+/, $current_command);
             # } else {
@@ -505,11 +422,15 @@ sub run_command($$)
     if ($self->{settings}{autoeval} || $eval_command) {
         my $return_type = parse_eval_sigil($current_command);
         $return_type = '$' unless $return_type;
-        my $opts = {nest => 0, return_type => $return_type};
+        my $opts = {nest              => 0, 
+                    hide_position     => 1, 
+                    fix_file_and_line => 1,
+                    return_type       => $return_type};
 
         # FIXME: 2 below is a magic fixup constant, also found in
         # DB::finish.  Remove it.
         if (0 == $self->{frame_index}) {
+            chomp $current_command;
             $self->eval($current_command, $opts, 2);
         } else {
             my $return_type = $DB::eval_opts->{return_type} = 
@@ -523,7 +444,7 @@ sub run_command($$)
             } else {
                 $DB::eval_result = $self->eval($current_command, $opts, 2);
             }
-            process_after_eval($self);
+            handle_eval_result($self);
         }
         return;
     }

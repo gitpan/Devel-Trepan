@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 use rlib '../../../..';
 
@@ -22,13 +22,18 @@ use strict; use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
-${NAME} DISPLAY_NUMBER ...
+our $HELP = <<'HELP';
+=pod
+
+undisplay I<display-number> ...
+
 Cancel some expressions to be displayed when program stops.  Arguments
 are the code numbers of the expressions to stop displaying.  No
-argument means cancel all automatic-display expressions.  "delete
-display" has the same effect as this command.  Used "info display" to
+argument means cancel all automatic-display expressions.  C<delete
+display> has the same effect as this command.  Use C<info display> to
 see current list of display numbers.
+
+=cut
 HELP
 
 # This method runs the command
@@ -38,21 +43,21 @@ sub run($$) {
     my @args = @$args; 
 
     if (scalar @args == 1) {
-	if ($proc->confirm('Delete all displays?', 0)) {
-	    $proc->{displays}->reset;
-	    return;
-	}
+        if ($proc->confirm('Delete all displays?', 0)) {
+            $proc->{displays}->reset;
+            return;
+        }
     }
     shift @args;
     for my $num_str (@args) {
-	my $opts = {msg_on_error => sprintf('%s must be a display number', $num_str)};
-	my $i = $proc->get_an_int($num_str);
-	if ($i) {
-	    unless($proc->{displays}->delete($i)) {
-		$proc->errmsg("No display number $i");
-		return;
-	    }
-	}
+        my $opts = {msg_on_error => sprintf('%s must be a display number', $num_str)};
+        my $i = $proc->get_an_int($num_str);
+        if ($i) {
+            unless($proc->{displays}->delete($i)) {
+                $proc->errmsg("No display number $i");
+                return;
+            }
+        }
     }
 }
         

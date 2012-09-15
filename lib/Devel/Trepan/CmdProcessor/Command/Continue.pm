@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
 use rlib '../../../..';
@@ -29,7 +29,9 @@ use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
 our $HELP = <<"HELP";
-${NAME} [LOCATION]
+=pod
+
+continue [I<location>]
 
 Leave the debugger loop and continue execution. Subsequent entry to
 the debugger however may occur via breakpoints or explicit calls, or
@@ -38,12 +40,19 @@ exceptions.
 If a parameter is given, a temporary breakpoint is set at that position
 before continuing. 
 
-Examples:
-   ${NAME}
-   ${NAME} 10    # continue to line 10
-   ${NAME} gcd   # continue to first instruction of method gcd
+=head2 Examples:
 
-See also 'step', 'next', 'finish', 'nexti' commands and "help location".
+ continue
+ continue 10    # continue to line 10
+ continue gcd   # continue to first instruction of method gcd
+
+See also L<C<step>|Devel::Trepan::CmdProcessor::Command::Step>,
+L<C<next>|Devel::Trepan::CmdProcessor::Command::Next>,
+L<C<finish>|Devel::Trepan::CmdProcessor::Command::Finis> commands and
+C<help location>.
+
+=cut
+
 HELP
 
 

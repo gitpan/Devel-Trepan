@@ -23,16 +23,19 @@ use strict; use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
-${NAME} [bpnumber [bpnumber...]]  
+our $HELP = <<'HELP';
+=pod
+
+delete [I<bp-number> [I<bp-number>...]]  
 
 Delete some breakpoints.
 
 Arguments are breakpoint numbers with spaces in between.  To delete
 all breakpoints, give no arguments.  
 
-See also the "clear" command which clears breakpoints by line number
-and "info break" to get a list of breakpoint numbers.
+See also the C<clear> command which clears breakpoints by line number
+and C<info break> to get a list of breakpoint numbers.
+=cut
 HELP
 
 # This method runs the command
@@ -42,16 +45,16 @@ sub run($$) {
     my @args = @$args; 
 
     if (scalar @args == 1) {
-	if ($proc->confirm('Delete all breakpoints?', 0)) {
-	    $proc->{brkpts}->reset;
-	    return;
-	}
+        if ($proc->confirm('Delete all breakpoints?', 0)) {
+            $proc->{brkpts}->reset;
+            return;
+        }
     }
     shift @args;
     for my $num_str (@args) {
-	my $bp_num = $proc->get_an_int($num_str);
-	my $success = $proc->{brkpts}->delete($bp_num) if $bp_num;
-	$proc->msg("Deleted breakpoint $bp_num") if $success;
+        my $bp_num = $proc->get_an_int($num_str);
+        my $success = $proc->{brkpts}->delete($bp_num) if $bp_num;
+        $proc->msg("Deleted breakpoint $bp_num") if $success;
     }
 }
         

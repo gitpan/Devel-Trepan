@@ -18,6 +18,13 @@ use strict;
 use warnings;
 use Module::Build;
 use Config;
+use File::Basename;
+use File::Spec;
+
+my $dirname = dirname(__FILE__);
+do File::Spec->catfile(($dirname, qw(lib Devel Trepan.pm)));
+
+my $release_status = ($Devel::Trepan::VERSION =~ /_/) ? 'testing' : 'stable';
 
 my $builder = Module::Build->new( 
     module_name         => 'Devel::Trepan',
@@ -29,8 +36,7 @@ my $builder = Module::Build->new(
     dist_version_from   => 'lib/Devel/Trepan.pm',
     license             => 'gpl',
     needs_compiler      => 0,
-    release_status      => 'stable', # or 'testing'
-    # release_status      => 'testing',  # or 'stable'
+    release_status      => $release_status,
 
     meta_merge => {
 	resources => {
@@ -50,10 +56,12 @@ my $builder = Module::Build->new(
         'Test::More'                        => '0.81',
     },
     recommends => {
-	'Term::ReadLine::Perl'              => 0,
-	'Term::ReadKey'                     => 0,
-	'Eval::WithLexicals'                => 0,
 	'Data::Printer'                     => 0,
+	'Devel::Callsite'                   => 0,
+	'Eval::WithLexicals'                => 0,
+	'Pod::Text::Color'                  => 0,
+	'Term::ReadKey'                     => 0,
+	'Term::ReadLine::Perl'              => 0,
     },
 
     requires => {
@@ -64,6 +72,7 @@ my $builder = Module::Build->new(
 	'Getopt::Long'                      => '2.36',
         'Digest::SHA'                       => 0,
         'PadWalker'                         => 0,
+	'Pod::Text'                         => 0,
         'Syntax::Highlight::Perl::Improved' => 0,
         'rlib'                              => '0.02',
         'version'                           => 0,

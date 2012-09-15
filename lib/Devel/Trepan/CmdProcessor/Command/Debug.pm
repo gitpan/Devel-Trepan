@@ -10,7 +10,7 @@ use if !@ISA, Devel::Trepan::CmdProcessor::Command ;
 unless (@ISA) {
     eval <<'EOE';
     use constant CATEGORY   => 'data';
-    use constant SHORT_HELP => 'debug into a Perl expression';
+    use constant SHORT_HELP => 'debug into a Perl expression or statement';
     use constant MIN_ARGS   => 1;      # Need at least this many
     use constant MAX_ARGS   => undef;  # Need at most this many - 
                                        # undef -> unlimited.
@@ -25,15 +25,21 @@ use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
-${NAME} [STRING]
+our $HELP = <<'HELP';
+=pod
 
-Recursive debug STRING.
+debug I<Perl-code>
 
-Examples:
+Recursively debug I<Perl-code>.
 
-${NAME} finonacci(5)   # Debug fibonacci funcition
-${NAME} \$x=1; \$y=2;    # Kind of pointless, but doable.
+The level of recursive debugging is shown in the prompt. For example
+C<((trepan.pl))> indicates one nested level of debugging.
+
+=head2 Examples:
+
+ debug finonacci(5)   # Debug fibonacci function
+ debug $x=1; $y=2;    # Kind of pointless, but doable.
+=cut
 HELP
 
 # sub complete($$)
@@ -51,22 +57,25 @@ sub run($$)
     my $cmd_name = $args->[0];
     no warnings 'once';
     my $opts = {
-	return_type => parse_eval_suffix($cmd_name),
-	nest => $DB::level
+        return_type => parse_eval_suffix($cmd_name),
+        nest => $DB::level,
+        # Don't fix up __FILE__ and __LINE__ in this eval. 
+        # We want to see our debug (eval) with its string.
+        fix_file_and_line => 0
     };
+
+    # FIXME: may mess up trace print. And cause skips we didn't want.
+    ## Skip over stopping in the eval that is setup below.
+    ## $proc->{skip_count} = 1;
 
     # Have to use $^D rather than $DEBUGGER below since we are in the
     # user's code and they might not have English set.
     my $full_expr = 
-	"\$DB::event=undef;\n"   .
-	"\$DB::single = 1;\n"    . 
-	"\$^D |= DB::db_stop;\n" . 
-	"\$DB::in_debugger=0;\n" . 
-	$expr;
-
-    # Don't fix up __FILE__ and __LINE__ in this eval. 
-    # We want to see our debug (eval) with the string above.
-    $DB::fix_file_and_line = 0;
+        "\$DB::event=undef;\n"   .
+        "\$DB::single = 1;\n"    . 
+        "\$^D |= DB::db_stop;\n" . 
+        "\$DB::in_debugger=0;\n" . 
+        $expr;
 
     # FIXME: 4 below is a magic fixup constant.
     $proc->eval($full_expr, $opts, 4);

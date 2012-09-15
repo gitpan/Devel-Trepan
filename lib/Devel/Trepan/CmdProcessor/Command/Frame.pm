@@ -23,23 +23,27 @@ use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
 our $HELP = <<"HELP";
-${NAME} [FRAME-NUMBER]
+=pod
 
-Change the current frame to frame FRAME-NUMBER if specified, or the
+frame [I<frame-number>]
+
+Change the current frame to frame I<frame-number> if specified, or the
 most-recent frame, 0, if no frame number specified.
 
 A negative number indicates the position from the other or
-least-recently-entered end.  So '$NAME -1' moves to the oldest frame.
+least-recently-entered end.  So C<frame -1> moves to the oldest frame.
 
-Examples:
-   $NAME     # Set current frame at the current stopping point
-   $NAME 0   # Same as above
-   $NAME .   # Same as above. 'current thread' is explicit.
-   $NAME . 0 # Same as above.
-   $NAME 1   # Move to frame 1. Same as: frame 0; up
-   $NAME -1  # The least-recent frame
+=head2 Examples:
 
-See also 'up', 'down' and 'backtrace'
+   frame     # Set current frame at the current stopping point
+   frame 0   # Same as above
+   frame .   # Same as above. 'current thread' is explicit.
+   frame . 0 # Same as above.
+   frame 1   # Move to frame 1. Same as: frame 0; up
+   frame -1  # The least-recent frame
+
+See also C<up>, C<down> and C<backtrace>
+=cut
 HELP
 
 sub complete($$)
@@ -56,19 +60,19 @@ sub run($$)
     my $position_str;
 
     if (scalar @$args == 1) {
-	# Form is: "frame" which means "frame 0"
-	$position_str = '0';
+        # Form is: "frame" which means "frame 0"
+        $position_str = '0';
     } elsif (scalar @$args == 2) {
-	# Form is: "frame position"
-	$position_str = $args->[1];
+        # Form is: "frame position"
+        $position_str = $args->[1];
     }
 
     my ($low, $high) = $proc->frame_low_high(0);
     my $opts= {
-	'msg_on_error' => 
-	    "The '${NAME}' command requires a frame number. Got: ${position_str}",
-	min_value => $low, 
-	max_value => $high
+        'msg_on_error' => 
+            "The '${NAME}' command requires a frame number. Got: ${position_str}",
+        min_value => $low, 
+        max_value => $high
     };
     my $frame_num = $proc->get_an_int($position_str, $opts);
     return unless defined $frame_num;

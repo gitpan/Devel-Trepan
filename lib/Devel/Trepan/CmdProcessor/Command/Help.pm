@@ -6,6 +6,9 @@ use rlib '../../../..';
 package Devel::Trepan::CmdProcessor::Command::Help;
 use warnings; no warnings 'redefine';
 
+use Devel::Trepan::Pod2Text qw(pod2string help2podstring);
+use Devel::Trepan::Complete qw(complete_token);
+
 use if !@ISA, Devel::Trepan::CmdProcessor::Command ;
 use strict;
 
@@ -25,22 +28,25 @@ EOE
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
-${NAME} [command [subcommand]|expression]
+our $HELP = <<'HELP';
+=pod 
+
+help [I<command> [I<subcommand>]|I<expression>]
 
 Without argument, print the list of available debugger commands.
 
 When an argument is given, it is first checked to see if it is command
-name. 'help where' gives help on the 'where' debugger command.
+name. C<help backtrace> gives help on the C<backtrace> debugger command.
 
-If the environment variable \$PAGER is defined, the file is
+If the environment variable I<$PAGER> is defined, the file is
 piped through that command.  You will notice this only for long help
 output.
 
-Some commands like 'info', 'set', and 'show' can accept an
+Some commands like C<info>, C<set>, and C<show> can accept an
 additional subcommand to give help just about that particular
-subcommand. For example 'help info line' gives help about the
-info line command.
+subcommand. For example C<help info line> gives help about the
+C<info line> command.
+=cut
 HELP
 
 BEGIN {
@@ -84,12 +90,18 @@ sub complete($$)
     my $proc = $self->{proc};
     my @candidates = (keys %{CATEGORIES()}, qw(* all), 
                       $self->command_names());
-    my @matches = 
-        Devel::Trepan::Complete::complete_token(\@candidates, $prefix);
+    my @matches = complete_token(\@candidates, $prefix);
     # my @aliases = 
     #   Devel::Trepan::Complete::complete_token_filtered($proc->{aliases}, 
     #                                                    $prefix, \@matches);
     # sort (@matches, @aliases);
+    sort @matches;
+}
+
+sub complete_syntax($$) {
+    my ($self, $prefix) = @_;
+    my @candidates = @{$self->syntax_files()};
+    my @matches = complete_token(\@candidates, $prefix);
     sort @matches;
 }
 
@@ -98,16 +110,16 @@ sub complete_token_with_next($$;$)
     my ($self, $prefix, $cmd_prefix) = @_;
     my $proc = $self->{proc};
     my @result = ();
-    my @matches = complete($self, $prefix);
+    my @matches = $self->complete($prefix);
     foreach my $cmd (@matches) {
         my %commands = %{$proc->{commands}};
         if (exists $commands{$cmd}) {
             push @result, [$cmd, $commands{$cmd}];
-            # if ('syntax' eq $cmd) {
-            #   complete_method =  Syntax->new(syntax_files);
-            # } else {
-            #   $proc->commands.member?(cmd) ? $proc->commands[cmd] : 0;
-            # }
+        } elsif ('syntax' eq $cmd) {
+            my @syntax_files = @{$self->syntax_files()};
+            push @result, [$cmd, 
+                           sub { my $prefix = shift; 
+                                 $self->complete_syntax($prefix) } ];
         } else {
             push @result, [$cmd, ['*'] ];
         }
@@ -172,10 +184,10 @@ sub syntax_files($)
 {
     my $self = shift;
     return $self->{syntax_files} if $self->{syntax_files};
-    my @result = map({ $_ = basename($_, '.txt') } 
-                     glob(File::Spec->catfile($HELP_DIR, "/*.txt")));
-    $self->{syntax_files} = @result;
-    return @result;
+    my @pods = glob(File::Spec->catfile($HELP_DIR, "/*.pod"));
+    my @result = map({ $_ = basename($_, '.pod') }  @pods);
+    $self->{syntax_files} = \@result;
+    return \@result;
 }
 
 sub show_command_syntax($$)
@@ -184,31 +196,27 @@ sub show_command_syntax($$)
     if (scalar @$args == 2) {
         $self->{syntax_summary_help} ||= {};
         $self->section("List of syntax help");
-        for my $name (syntax_files($self)) {
+        for my $name (@{$self->syntax_files()}) {
             unless($self->{syntax_summary_help}{$name}) {
-                my $filename = File::Spec->catfile($HELP_DIR, "${name}.txt");
+                my $filename = File::Spec->catfile($HELP_DIR, "${name}.pod");
                 my @lines = $self->readlines($filename);
                 $self->{syntax_summary_help}{$name} = $lines[0];
             }
             my $msg = sprintf("  %-8s -- %s", $name, 
                               $self->{syntax_summary_help}{$name});
-            $self->msg($msg);
+            $self->msg($msg, {unlimited => 1});
         }
     } else {
         my @args = splice(@{$args}, 2);
         for my $name (@args) {
             $self->{syntax_help} ||= {};
-            unless ($self->{syntax_help}{name}) {
-                my $filename = 
-                    File::Spec->catfile($HELP_DIR, "${name}.txt");
-                my @lines = $self->readlines($filename);
-                shift @lines;
-                $self->{syntax_help}{$name} = join("\n", @lines);
-            }
-            
-            if (exists $self->{syntax_help}{$name}) {
-                $self->section("Debugger syntax for a ${name}:");
-                $self->msg($self->{syntax_help}{$name});
+            my $filename = File::Spec->catfile($HELP_DIR, "${name}.pod");
+            if ( -r $filename) {
+                my $proc = $self->{proc};
+                my $text = pod2string($filename, 
+                                      $proc->{settings}{highlight},
+                                      $proc->{settings}{maxwidth});
+                $self->msg($text);
             } else {
                 $self->errmsg("No syntax help for ${name}");
             }
@@ -228,10 +236,10 @@ sub run($$)
             $self->section('All currently valid command names:');
             my @cmds = sort($self->command_names());
             $self->msg($self->columnize_commands(\@cmds));
-	    if (scalar keys %{$proc->{aliases}}) {
-		$self->msg('');
-		show_aliases($self) 
-	    }
+            if (scalar keys %{$proc->{aliases}}) {
+                $self->msg('');
+                show_aliases($self) 
+            }
             # $self->show_macros   unless scalar @$self->{proc}->macros;
         } elsif ($cmd_name =~ /^aliases$/i) {
             show_aliases($self);
@@ -256,9 +264,13 @@ sub run($$)
             }
             my $cmd_obj = $proc->{commands}{$real_name};
             my $help_text = 
-                $cmd_obj->can("help") ? $cmd_obj->help($args) 
+                $cmd_obj->can('help') ? $cmd_obj->help($args) 
                 : $cmd_obj->{help};
             if ($help_text) {
+                $help_text = help2podstring($help_text,
+                                            $proc->{settings}{highlight},
+                                            $proc->{settings}{maxwidth});
+                chomp $help_text; chomp $help_text;
                 $self->msg($help_text) ;
                 if (scalar @{$cmd_obj->{aliases}} && scalar @$args == 2) {
                     my $aliases_str = join(', ', @{$cmd_obj->{aliases}});
@@ -311,7 +323,8 @@ unless (caller) {
     my $sep = '=' x 30 . "\n";
     print join(', ', $help_cmd->complete('br')), "\n";
     print join(', ', $help_cmd->complete('un')), "\n";
-    list_categories($help_cmd);
+    print join(', ', $help_cmd->complete("sy")), "\n";
+    $help_cmd->list_categories();
     print $sep;
     $help_cmd->run([$NAME, 'help']);
     print $sep;
@@ -326,6 +339,8 @@ unless (caller) {
     $help_cmd->run([$NAME, 'running', '*']);
     print $sep;
     $help_cmd->run([$NAME, 'syntax']);
+    print $sep;
+    $help_cmd->run([$NAME, 'syntax', 'command']);
     print $sep;
     $proc->{terminated} = 1;
     $help_cmd->run([$NAME, '*']);

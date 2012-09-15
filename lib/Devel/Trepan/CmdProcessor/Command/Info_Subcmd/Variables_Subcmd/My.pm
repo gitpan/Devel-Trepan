@@ -21,19 +21,24 @@ use Devel::Trepan::CmdProcessor::Command::Subcmd::Core;
 our $CMD = "info variables my";
 our @CMD = split(/ /, $CMD);
 our $MIN_ABBREV = length('m');
-our $HELP   = <<"HELP";
-${CMD}
-${CMD} -v
-${CMD} VAR1 [VAR2...]
+our $HELP   = <<'HELP';
+=pod
 
-Lists 'my' variables at the current frame. Use the frame changing
-commands like 'up', 'down' or 'frame' set the current frame.
+info variables my
 
-In the first form, give a list of 'my' variable names only. 
-In the second form, list variable names and values
-In the third form, list variable names and values of VAR1, etc.
+info variables my -v
 
-See also 'set variable', and frame changing commands
+info variables my I<var1> [I<var2>...]
+
+Lists C<my> variables at the current frame. Use the frame changing
+commands like C<up>, C<down> or C<frame> set the current frame.
+
+In the first form, give a list of C<my> variable names only.  In the
+second form, list variable names and values In the third form, list
+variable names and values of VAR1, etc.
+
+See also C<set variable>, and frame changing commands.
+=cut
 HELP
 our $SHORT_HELP   = "Information about 'my' variables.";
 
@@ -45,29 +50,29 @@ sub show_var($$$)
     my $dumper;
     my $type = substr($var_name, 0, 1);
     if ('$' eq $type) {
-	$dumper = Data::Dumper->new([${$ref}]);
-	$dumper->Useqq(0);
-	$dumper->Terse(1);
-	$dumper->Indent(0);
-	$proc->msg("$var_name = ".  $dumper->Dump);
+        $dumper = Data::Dumper->new([${$ref}]);
+        $dumper->Useqq(0);
+        $dumper->Terse(1);
+        $dumper->Indent(0);
+        $proc->msg("$var_name = ".  $dumper->Dump);
     } elsif ('@' eq $type) { 
-	$dumper = Data::Dumper->new([$ref]); 
-	$dumper->Useqq(0);
-	$dumper->Terse(1);
-	$dumper->Indent(0);
-	$proc->msg("$var_name = ".  $dumper->Dump);
+        $dumper = Data::Dumper->new([$ref]); 
+        $dumper->Useqq(0);
+        $dumper->Terse(1);
+        $dumper->Indent(0);
+        $proc->msg("$var_name = ".  $dumper->Dump);
     } elsif ('%' eq $type) { 
-	$dumper = Data::Dumper->new([$ref], [$var_name]);
-	$dumper->Useqq(0);
-	$dumper->Terse(0);
-	$dumper->Indent(0);
-	$proc->msg($dumper->Dump);
+        $dumper = Data::Dumper->new([$ref], [$var_name]);
+        $dumper->Useqq(0);
+        $dumper->Terse(0);
+        $dumper->Indent(0);
+        $proc->msg($dumper->Dump);
     } else {
-	$dumper = Data::Dumper->new([$ref], [$var_name]); 
-	$dumper->Useqq(0);
-	$dumper->Terse(1);
-	$dumper->Indent(0);
-	$proc->msg($dumper->Dump);
+        $dumper = Data::Dumper->new([$ref], [$var_name]); 
+        $dumper->Useqq(0);
+        $dumper->Terse(1);
+        $dumper->Indent(0);
+        $proc->msg($dumper->Dump);
     };
 }
 
@@ -79,31 +84,31 @@ sub process_args($$$$) {
     my @names = sort keys %{$hash_ref};
 
     if (0 == scalar @ARGS) {
-	if (scalar @names) {
-	    $proc->section("$lex_type variables");
-	    $proc->msg($self->{parent}{parent}->columnize_commands(\@names));
-	} else {
-	    $proc->msg("No '$lex_type' variables at this level");
-	}
+        if (scalar @names) {
+            $proc->section("$lex_type variables");
+            $proc->msg($self->{parent}{parent}->columnize_commands(\@names));
+        } else {
+            $proc->msg("No '$lex_type' variables at this level");
+        }
     } else {
-	if ($ARGS[0] eq '-v') {
-	    if (scalar @names) {
-		$proc->section("$lex_type variables");
-		for my $name (@names) {
-		    show_var($proc, $name, $hash_ref->{$name});
-		}
-	    } else {
-		$proc->msg("No '$lex_type' variables at this level");
-	    }
-	} else {
-	    for my $name (@ARGS) {
-		if (exists($hash_ref->{$name})) {
-		    show_var($proc, $name, $hash_ref->{$name});
-		} else {
-		    $proc->errmsg("No '$lex_type' variable $name found at this level");
-		}
-	    }
-	}
+        if ($ARGS[0] eq '-v') {
+            if (scalar @names) {
+                $proc->section("$lex_type variables");
+                for my $name (@names) {
+                    show_var($proc, $name, $hash_ref->{$name});
+                }
+            } else {
+                $proc->msg("No '$lex_type' variables at this level");
+            }
+        } else {
+            for my $name (@ARGS) {
+                if (exists($hash_ref->{$name})) {
+                    show_var($proc, $name, $hash_ref->{$name});
+                } else {
+                    $proc->errmsg("No '$lex_type' variable $name found at this level");
+                }
+            }
+        }
     }
 }
 

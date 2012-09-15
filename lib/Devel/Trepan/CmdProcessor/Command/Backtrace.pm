@@ -22,18 +22,22 @@ use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
 our $HELP = <<"HELP";
-${NAME} [COUNT]
+=pod
 
-Print a stack trace, with the most recent frame at the top.  With a
+backtrace [I<count>]
+
+Print a stack trace, with the most recent frame at the top. With a
 positive number, print at most many entries. 
 
-An arrow indicates the 'current frame'. The current frame determines
-the context used for many debugger commands such as source-line
-listing or the 'edit' command.
+In the listing produced, an arrow indicates the 'current frame'. The
+current frame determines the context used for many debugger commands
+such as source-line listing or the C<edit> command.
 
-Examples:
-   ${NAME}    # Print a full stack trace
-   ${NAME} 2  # Print only the top two entries
+=head2 Examples:
+
+ backtrace    # Print a full stack trace
+ backtrace 2  # Print only the top two entries
+=cut
 HELP
 
 sub complete($$)
@@ -48,19 +52,19 @@ sub run($$)
     my ($self, $args) = @_;
     my $proc = $self->{proc};
     my $opts = {
-	basename    => $proc->{settings}{basename},
-	current_pos => $proc->{frame_index},
-	maxstack    => $proc->{settings}{maxstack},
-	maxwidth    => $proc->{settings}{maxwidth},
+        basename    => $proc->{settings}{basename},
+        current_pos => $proc->{frame_index},
+        maxstack    => $proc->{settings}{maxstack},
+        maxwidth    => $proc->{settings}{maxwidth},
     };
     my $stack_size = $proc->{stack_size};
     my $count = $stack_size;
     if (scalar @$args > 1) {
         $count = 
-	    $proc->get_an_int($args->[1], 
-			      {cmdname   => $self->name,
-			       min_value => 1});
-	return unless defined $count;
+            $proc->get_an_int($args->[1], 
+                              {cmdname   => $self->name,
+                               min_value => 1});
+        return unless defined $count;
     }
     $opts->{count} = $count;
     my @frames = $self->{dbgr}->backtrace($count-1);
@@ -68,6 +72,7 @@ sub run($$)
 }
 
 unless(caller) {
+    # FIXME: DRY this code by putting in common location.
     require Devel::Trepan::DB;
     require Devel::Trepan::Core;
     my $db = Devel::Trepan::Core->new;

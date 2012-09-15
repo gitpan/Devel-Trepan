@@ -8,7 +8,7 @@ package Devel::Trepan;
 use strict;
 use warnings;
 use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION);
-use version; $VERSION = '0.35';
+use version; $VERSION = '0.36';
 use Exporter;
 
 use Devel::Trepan::Core;
@@ -28,6 +28,16 @@ __END__
 
 =pod
 
+=for comment
+This file is shared by both Trepan.pod and Trepan.pm after its __END__
+Trepan.pod is useful in the Github wiki:
+https://github.com/rocky/Perl-Devel-Trepan/wiki
+where we can immediately see the results and others can contribute.
+
+=for comment
+The version Trepan.pm however is what is seen at https://metacpan.org/module/Devel::Trepan and when folks download this file
+
+
 =head1 NAME
 
 Devel::Trepan -- A new modular Perl debugger
@@ -39,9 +49,9 @@ L<trepanning debuggers|http://github.com/rocky/rb-trepanning/wiki>.
 
 =head2 Features: 
 
-=over 4
+=over
 
-=item *
+=item * 
 
 extensive online-help
 
@@ -89,9 +99,19 @@ effect. See L</Plugins> and L</Recommended Modules> below.
 
 =head1 DESCRIPTION
 
+=head2 Invocation
+
 From a shell: 
 
     $ trepan.pl [trepan-opts] -- perl-program [perl-program-opts]
+
+For out-of-process (and possibly out-of server) debugging:
+
+    $ trepan.pl --server [trepan-opts] -- perl-program [perl-program-opts]
+
+and then from another process or computer: 
+
+    $ trepan.pl --client [--host DNS-NAME-OR-IP]
 
 Calling the debugger from inside your Perl program using Joshua ben
 Jore's L<Enbugger>:
@@ -120,22 +140,85 @@ The help system follows the gdb classificiation. Below is not a full
 list of commands, nor does it contain the full list of options on each
 command, but rather some of the more basic commands and options.
 
-=head3 Commands involving Running the program
+=over
 
-=head4 step [COUNT]
+=item *
+
+L</"Commands involving running the program">
+
+=item * 
+
+L</"Examining data">
+
+=item * 
+
+L</"Making the program stop at certain points">
+
+=item * 
+
+L</"Examining the call stack">
+
+=item * 
+
+L</"Syntax of debugger commands">
+
+=back 
+
+
+=head3 Commands involving running the program
+
+=over 
+
+=item * 
+
+L</"Step into (step)">
+
+=item *
+
+L</"Step over (next)">
+
+=item * 
+
+L<"Continue execution (continue)">
+
+=item * 
+
+L</"Step out (finish)">
+
+=item *
+
+L</"Terminate gently (quit)">
+
+=item * 
+
+L</"Hard termination (kill)">
+
+=item *
+
+L</"Restart execution (restart)">
+
+=back
+
+=head4 Step into (step)
+
+B<step>[<B<+>|B<->] [B<into>] [I<count>]
 
 Execute the current line, stopping at the next event.  Sometimes this
-is called 'step into'.
+is called "step into".
 
-With an integer argument, step that many times.  
+With an integer argument, step that many times.  With an 'until'
+expression that expression is evaluated and we stop the first time it
+is true.
 
 A suffix of C<+> in a command or an alias forces a move to another
-position.
+position, while a suffix of C<-> disables this requirement.  A suffix
+of C<E<gt>> will continue until the next call. (C<finish> will run run until
+the return for that call.)
 
-If no suffix is given, the debugger setting 'different' determines
+If no suffix is given, the debugger setting C<different> determines
 this behavior.
 
-Examples: 
+I<Examples:> 
 
     step        # step 1 event, *any* event obeying 'set different' setting
     step 1      # same as above
@@ -146,12 +229,16 @@ Examples:
 Related and similar is the C<next> (step over) and C<finish> (step out)
 commands.  All of these are slower than running to a breakpoint.
 
-=head4 next
+=head4 Step over (next)
+
+B<next>
 
 Step one statement ignoring steps into function calls at this level.
 Sometimes this is called "step over".
 
-=head4 continue [LOCATION]
+=head4 Continue execution (continue)
+
+B<continue> [I<location>]
 
 Leave the debugger loop and continue execution. Subsequent entry to
 the debugger however may occur via breakpoints or explicit calls, or
@@ -160,55 +247,74 @@ exceptions.
 If a parameter is given, a temporary breakpoint is set at that position
 before continuing. 
 
-Examples:
+I<Examples:>
 
-    continue
-    continue 10    # continue to line 10
-    continue gcd   # continue to first instruction of method gcd
+ continue
+ continue 10    # continue to line 10
+ continue gcd   # continue to first instruction of method gcd
 
-=head4 finish
+See also L<C<step>|Devel::Trepan::CmdProcessor::Command::Step>,
+L<C<next>|Devel::Trepan::CmdProcessor::Command::Next>,
+L<C<finish>|Devel::Trepan::CmdProcessor::Command::Finis> commands and
+C<help location>.
+
+=head4 Step out (finish)
+
+B<finish>
 
 Continue execution until the program is about to leave the current
 function. Sometimes this is called 'step out'.
 
-=head4 quit[!] [unconditionally] [exit code] 
+=head4 Terminate gently (quit)
 
-Gentlly exit the debugger and debugged program.
+B<quit>[B<!>] [B<unconditionally>] [I<exit-code>]
 
-The program being debugged is exited via exit() which runs the Kernel
+Gently exit the debugger and debugged program.
+
+The program being debugged is exited via I<exit()> which runs the Kernel
 at_exit finalizers. If a return code is given, that is the return code
-passed to exit() - presumably the return code that will be passed back
+passed to I<exit()> - presumably the return code that will be passed back
 to the OS. If no exit code is given, 0 is used.
 
-Examples: 
+I<Examples:> 
 
-    quit                 # quit prompting if we are interactive
-    quit unconditionally # quit without prompting
-    quit!                # same as above
-    quit 0               # same as "quit"
-    quit! 1              # unconditional quit setting exit code 1
+ quit                 # quit prompting if we are interactive
+ quit unconditionally # quit without prompting
+ quit!                # same as above
+ quit 0               # same as "quit"
+ quit! 1              # unconditional quit setting exit code 1
 
-=head4 kill 
+See also L<C<kill>|Devel::Trepan::CmdProcessor::Command::Kill> and
+C<set confirm>.
+
+=head4 Hard termination (kill)
+
+B<kill>[B<!>] [I<signal-number>|I<signal-name>]
 
 Kill execution of program being debugged.
-Equivalent of kill('KILL', $$). This is an unmaskable
+
+Equivalent of C<kill('KILL', $$)>. This is an unmaskable
 signal. Use this when all else fails, e.g. in thread code, use this.
 
 If you are in interactive mode, you are prompted to confirm killing.
-However when this command is aliased from a command ending in !, no 
+However when this command is aliased from a command ending in C<!>, no 
 questions are asked.
 
-    kill  
-    kill unconditionally
-    kill KILL # same as above
-    kill TERM # Send "TERM" signal
-    kill -9   # same as above
-    kill  9   # same as above
-    kill! 9   # above, but no questions asked
+I<Examples:> 
+
+ kill  
+ kill KILL # same as above
+ kill -9   # same as above
+ kill  9   # same as above
+ kill! 9   # same as above, but no questions asked
+ kill unconditionally # same as above
+ kill TERM # Send "TERM" signal
 
 See also C<quit>
 
-=head4 restart
+=head4 Restart execution (restart)
+
+B<restart>
 
 Restart debugger and program via an exec call.
 
@@ -216,9 +322,23 @@ See also C<show args> for the exact invocation that will be used.
 
 =head3 Examining data
 
-=head4 eval[@$][?] [STRING]
+=over
 
-Run code in the context of the current frame.
+=item * 
+
+L</"Evaluate Perl code (eval)">
+
+=item *
+
+L</"Recursively Debug into Perl code">
+
+=back 
+
+=head4 Evaluate Perl code (eval)
+
+eval[@$][?] [I<Perl-code>]
+
+Run I<Perl-code> in the context of the current frame.
 
 If no string is given after the word "eval", we run the string from
 the current source code about to be run. If the "eval" command ends ?
@@ -227,9 +347,9 @@ expression in the line.
 
 Normally eval assumes you are typing a statement, not an expression;
 the result is a scalar value. However you can force the type of the result
-by adding the appropriate sigil @, or $.
+by adding the appropriate sigil C<@>, or C<$>.
 
-Examples:
+I<Examples:>
 
     eval 1+2 # 3
     eval$ 3   # Same as above, but the return type is explicit
@@ -248,36 +368,234 @@ Examples:
 See also C<set auto eval> to treat unrecognized debugger commands as
 Perl code.
 
-=head4 debug PERL-EXPRESSION
+=head4 Recursively Debug into Perl code
 
-To be completed...
+B<debug> I<Perl-code>
+
+Recursively debug I<Perl-code>.
+
+The level of recursive debugging is shown in the prompt. For example
+C<((trepan.pl))> indicates one nested level of debugging.
+
+I<Examples:>
+
+ debug finonacci(5)   # Debug fibonacci function
+ debug $x=1; $y=2;    # Kind of pointless, but doable.
+
+=head3 Making the program stop at certain points
+
+=over
+
+=item *
+
+L</"Set a breakpoint (break)">
+
+=item *
+
+L</"Set a temporary breakpoint (tbreak)">
+
+=item *
+
+L</"Add or modify a condition on a breakpoint (condition)">
+
+=item *
+
+L</"Delete some breakpoints (delete)">
+
+=item *
+
+L</"Enable some breakpoints (enable)">
+
+=item *
+
+L</"Disable some breakpoints (disable)">
+
+=item *
+
+L</"Set an action before a line is executed (action)">
+
+=item *
+
+L</"Stop when an expression changes value (watch)">
+
+=back
+
+=head4 Set a breakpont (break)
+
+B<break> [I<location>] [B<if> I<condition>]
+
+Set a breakpoint. If I<location> is given use the current stopping
+point. An optional condition may be given.
+
+I<Examples:>
+
+ break                  # set a breakpoint on the current line
+ break gcd              # set a breakpoint in function gcd
+ break gcd if $a == 1   # set a breakpoint in function gcd with 
+                        # condition $a == 1
+ break 10               # set breakpoint on line 10
+
+When a breakpoint is hit the event icon is C<xx>.
+
+See also C<help breakpoints>.
+
+=head4 Set a temporary breakpoint (tbreak)
+
+B<tbreak> [I<location>]
+
+Set a one-time breakpoint. The breakpoint is removed after it is hit.
+If no location is given use the current stopping point.
+
+I<Examples:>
+
+   tbreak
+   tbreak 10               # set breakpoint on line 10
+
+When a breakpoint is hit the event icon is C<x1>.
+
+See also C<break> and C<help breakpoints>.
+
+=head4 Add or modify a condition on a breakpoint (condition)
+
+B<condition> I<bp-number> I<Perl-expression>
+
+I<bp-number> is a breakpoint number.  I<perl-expresion> is a Perl
+expression which must evaluate to true before the breakpoint is
+honored.  If I<perl-expression> is absent, any existing condition is removed;
+i.e., the breakpoint is made unconditional.
+
+I<Examples:>
+
+   condition 5 x > 10  # Breakpoint 5 now has condition x > 10
+   condition 5         # Remove above condition
+
+See also "break", "enable" and "disable".
+
+=head4 Delete some breakpoints (delete)
+
+B<delete> [I<bp-number> [I<bp-number>...]]  
+
+Delete some breakpoints.
+
+Arguments are breakpoint numbers with spaces in between. To delete
+all breakpoints, give no arguments.  
+
+See also the C<clear> command which clears breakpoints by line number
+and C<info break> to get a list of breakpoint numbers.
+
+=head4 Enable some breakpoints
+
+B<enable> I<num> [I<num> ...]
+    
+Enables breakpoints, watch expressions or actions given as a space
+separated list of numbers which may be prefaces with an 'a', 'b', or 'w'.
+The prefaces are interpreted as follows:
+
+=over
+
+=item a -- action number
+
+=item b -- breakpoint number
+
+=item w -- watch expression number
+
+=back
+
+If I<num> is starts with a digit, I<num> is taken to be a breakpoint number.
+
+=head4 Disable some breakpoints (disable)
+
+B<disable> I<bp-number> [I<bp-number> ...]
+    
+Disables the breakpoints given as a space separated list of breakpoint
+numbers. See also C<info break> to get a list of breakpoints
+
+=head4 Set an action before a line is executed (action)
+
+B<action> I<position> I<Perl-statement>
+
+Set an action to be done before the line is executed. If line is
+C<.>, set an action on the line about to be executed. The sequence
+of steps taken by the debugger is:
+
+=over
+
+=item 1. check for a breakpoint at this line 
+
+=item 2. print the line if necessary (tracing) 
+
+=item 3. do any actions associated with that line 
+
+=item 4. prompt user if at a breakpoint or in single-step 
+
+=item 5. evaluate line 
+
+=back
+
+For example, this will print out the value of C<$foo> every time line
+53 is passed:
+
+=head4 Stop when an expression changes value (watch)
+
+B<watch> I<Perl-expression>
+
+Stop very time I<Perl-expression> changes from its prior value.
+
+I<Examples:>
+
+ watch $a  # enter debugger when the value of $a changes
+ watch scalar(@ARGV))  # enter debugger if size of @ARGV changes.
 
 =head3 Examining the call stack
 
-=head4 backtrace [COUNT]
+=over
 
-Print a stack trace, with the most recent frame at the top.  With a
+=item *
+
+L</"Print a backtrace (backtrace)">
+
+=item *
+
+L</"Select a call frame (frame)">
+
+=item *
+
+L</"Move to a more recent frame (up)">
+
+=item *
+
+L</"Move to a less recent frame (down)">
+
+=back
+
+=head4 Print a backtrace (backtrace)
+
+B<backtrace> [I<count>]
+
+Print a stack trace, with the most recent frame at the top. With a
 positive number, print at most many entries. 
 
-An arrow indicates the 'current frame'. The current frame determines
-the context used for many debugger commands such as source-line
-listing or the 'edit' command.
+In the listing produced, an arrow indicates the 'current frame'. The
+current frame determines the context used for many debugger commands
+such as source-line listing or the C<edit> command.
 
-Examples:
+I<Examples:>
 
-   backtrace   # Print a full stack trace
-   bactrace 2  # Print only the top two entries
+ backtrace    # Print a full stack trace
+ backtrace 2  # Print only the top two entries
 
 
-=head4 frame FRAME-NUMBER
+=head4 Select a call frame (frame)
 
-Change the current frame to frame FRAME-NUMBER if specified, or the
+B<frame> [I<frame-number>]
+
+Change the current frame to frame I<frame-number> if specified, or the
 most-recent frame, 0, if no frame number specified.
 
 A negative number indicates the position from the other or
-least-recently-entered end.  So 'frame -1' moves to the oldest frame.
+least-recently-entered end.  So C<frame -1> moves to the oldest frame.
 
-Examples:
+I<Examples:>
 
     frame     # Set current frame at the current stopping point
     frame 0   # Same as above
@@ -286,12 +604,16 @@ Examples:
     frame 1   # Move to frame 1. Same as: frame 0; up
     frame -1  # The least-recent frame
 
-=head4 up [COUNT]
+=head4 Move to a more recent frame (up)
+
+B<up> [I<count>]
 
 Move the current frame up in the stack trace (to an older frame). 0 is
 the most recent frame. If no count is given, move up 1.
 
-=head4 down [COUNT]
+=head4 Move to a less recent frame (down)
+
+B<down> [I<count>]
 
 Move the current frame down in the stack trace (to a newer frame). 0
 is the most recent frame. If no count is given, move down 1.
@@ -343,6 +665,38 @@ program at the point it is stoppped. However this is done only if
 If "auto eval" is not set on, or if running the Perl statement
 produces an error, we display an error message that the entered string
 is "undefined".
+
+=head2 Debugger Command Examples
+
+=head3 Commenting
+
+ # This line does nothing. It is a comment and is useful
+ # in debugger command files.
+      # any amount of leading space is also ok
+
+=head4 Splitting Commands
+ 
+The following runs two commands: C<info program> and C<list>
+
+ info program;; list 
+
+The following gives a syntax error since C<;;> splits the line and the
+simple debugger parse then thinks that the quote (") is not closed.
+
+ print "hi ;;-)\n" 
+ 
+If you have the Devel::Trepan::Shell plugin, you can go into a real
+shell and run the above. 
+
+=head4 Command Continuation
+
+If you want to continue a command on the next line use C<\> at the end
+of the line. For example:
+
+ eval $x = "This is \
+ a multi-line string"
+
+The string in variable C<$x> will have a C<\n> before the article "a".
 
 =head4 Command suffixes which have special meaning
 

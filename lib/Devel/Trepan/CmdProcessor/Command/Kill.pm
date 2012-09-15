@@ -1,4 +1,4 @@
-# Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 # -*- coding: utf-8 -*-
 use warnings; no warnings 'redefine';
 use rlib '../../../..';
@@ -26,29 +26,34 @@ use strict;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
-$NAME [signal-number|signal-name]
+our $HELP = <<'HELP';
+=pod
+
+kill[!] [I<signal-number>|I<signal-name>]
 
 Kill execution of program being debugged.
 
-Equivalent of kill('KILL', \$\$). This is an unmaskable
-signal\. Use this when all else fails, e.g. in thread code, use this.
+Equivalent of C<kill('KILL', $$)>. This is an unmaskable
+signal. Use this when all else fails, e.g. in thread code, use this.
 
 If you are in interactive mode, you are prompted to confirm killing.
-However when this command is aliased from a command ending in !, no 
+However when this command is aliased from a command ending in C<!>, no 
 questions are asked.
 
-Examples:
+=head2 Examples:
 
-  $NAME  
-  $NAME unconditionally
-  $NAME KILL # same as above
-  $NAME kill # same as above
-  $NAME -9   # same as above
-  $NAME  9   # same as above
-  $NAME! 9   # above, but no questions asked
+ kill  
+ kill KILL # same as above
+ kill kill # same as above
+ kill -9   # same as above
+ kill  9   # same as above
+ kill! 9   # same as above, but no questions asked
+ kill unconditionally # same as above
+ kill TERM # Send "TERM" signal
 
-See also 'quit'.
+See also C<set confirm> and
+L<C<quit>|Devel::Trepan::CmdProcessor::Command::Quit>.
+=cut
 HELP
 
 sub complete($$) {
@@ -64,31 +69,31 @@ sub run($$) {
     my $unconditional = substr($args->[0], -1, 1) eq '!';
     my $sig;
     if (scalar(@$args) > 1) {
-	$sig = uc($args->[1]);
-	unless ( ($sig =~ /[+-]?\d+/) || exists $SIG{$sig} ) { 
-	    $self->errmsg("Signal name '${sig}' is not a signal I know about.");
-	    return;
-	}
+        $sig = uc($args->[1]);
+        unless ( ($sig =~ /[+-]?\d+/) || exists $SIG{$sig} ) { 
+            $self->errmsg("Signal name '${sig}' is not a signal I know about.");
+            return;
+        }
     } else {
-	if ($unconditional || $self->{proc}->confirm('Really quit?', 0)) {
-	    $sig = 'KILL';
-	} else {
-	    $self->msg('Kill not confirmed.');
-	    return;
-	}
+        if ($unconditional || $self->{proc}->confirm('Really quit?', 0)) {
+            $sig = 'KILL';
+        } else {
+            $self->msg('Kill not confirmed.');
+            return;
+        }
     }
     if (kill(0, $$)) {
-	# Force finalization on interface.
-	$self->{proc}{interfaces} = [] if 
-	    'KILL' eq $sig || 9 eq $sig || -9 eq $sig;
-	if (kill($sig, $$)) {
-	    $self->msg("kill ${sig} successfully sent to process $$");
-	} else {
-	    $self->errmsg("Kill ${sig} to process $$ not accepted: $!")
-	}
+        # Force finalization on interface.
+        $self->{proc}{interfaces} = [] if 
+            'KILL' eq $sig || 9 eq $sig || -9 eq $sig;
+        if (kill($sig, $$)) {
+            $self->msg("kill ${sig} successfully sent to process $$");
+        } else {
+            $self->errmsg("Kill ${sig} to process $$ not accepted: $!")
+        }
     } else {
-	$self->errmsg(["Unable kill ${sig} to process $$",
-		       "Different uid and not super-user?"]);
+        $self->errmsg(["Unable kill ${sig} to process $$",
+                       "Different uid and not super-user?"]);
     }
 }
 
@@ -100,7 +105,7 @@ unless (caller()) {
     print join(', ', @{$cmd->{aliases}}), "\n";
     print "min args: ", eval('$' . __PACKAGE__ . "::MIN_ARGS"), "\n";
     for my $arg ('hu', 'HU', '', 1, '-9') {
-	printf "complete($arg) => %s\n", join(", ", $cmd->complete($arg));
+        printf "complete($arg) => %s\n", join(", ", $cmd->complete($arg));
     }
     for my $arg (qw(fooo 100 1 -1 HUP -9)) {
       print "$NAME ${arg}\n";

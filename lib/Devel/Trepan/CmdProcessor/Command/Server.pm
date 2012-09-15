@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
 use rlib '../../../..';
@@ -29,20 +29,24 @@ use vars @CMD_VARS;  # Value inherited from parent
 
 $NAME = set_name();
 $HELP = <<"HELP";
-${NAME} [options] FILE
+=pod
+
+server [I<options>]
 
 options: 
+
     -p | --port NUMBER
     -a | --address
 
 Put debugger in server mode which opens a socket for debugger connections
+=cut
 HELP
 
 # FIXME: put back in help.
 # Note that the command startup file ${Devel::Trepan::CMD_INITFILE_BASE} is read automatically
 # via a ${NAME} command the debugger is started.
 
-use constant DEFAULT_OPTIONS => {
+my $DEFAULT_OPTIONS = {
     port => 1954,
     host => '127.0.0.1',
 };
@@ -59,12 +63,12 @@ sub parse_options($$)
 {
     my ($self, $args) = @_;
     my $seen_yes_no = 0;
-    my $opts = DEFAULT_OPTIONS;
+    my %opts = %{$DEFAULT_OPTIONS};
     my $result = &GetOptionsFromArray($args,
-          'port:n' => \$opts->{port},
-          'host:s' => \$opts->{host},
-	);
-    $opts;
+          'port:n' => \$opts{port},
+          'host:s' => \$opts{host},
+        );
+    \%opts;
 }
 
 sub run($$)
@@ -77,7 +81,7 @@ sub run($$)
     $options->{logger} = $intf->[-1]{output}{output};
     # Push a new server interface.
     my $script_intf = Devel::Trepan::Interface::Server->new(undef, undef,
-							    $options);
+                                                            $options);
     push @{$intf}, $script_intf;
 }
 

@@ -25,13 +25,16 @@ use vars @CMD_VARS;  # Value inherited from parent
 @EXPORT = qw(@CMD_VARS set_name);
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
-${NAME} [COUNT]
+our $HELP = <<'HELP';
+=pod
+
+up [I<count>]
 
 Move the current frame up in the stack trace (to an older frame). 0 is
 the most recent frame. If no count is given, move up 1.
 
-See also 'down' and 'frame'.
+See also C<down> and C<frame>.
+=cut
 HELP
 
 sub complete($$)
@@ -49,10 +52,10 @@ sub run($$)
     $count_str = 1 unless defined $count_str;
     my ($low, $high) = $proc->frame_low_high(0);
     my $opts= {
-	'msg_on_error' => 
-	    "The '${NAME}' command requires a frame number. Got: ${count_str}",
-	min_value => $low, 
-	max_value => $high
+        'msg_on_error' => 
+            "The '${NAME}' command requires a frame number. Got: ${count_str}",
+        min_value => $low, 
+        max_value => $high
     };
     my $count = $proc->get_an_int($count_str, $opts);
     return unless defined $count;

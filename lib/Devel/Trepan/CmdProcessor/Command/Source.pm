@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
 use rlib '../../../..';
@@ -33,32 +33,36 @@ use vars qw(@ISA); @ISA = qw(Devel::Trepan::CmdProcessor::Command);
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
-${NAME} [options] FILE
+our $HELP = <<'HELP';
+=pod 
+
+source [I<options>] I<file>
 
 options: 
+
     -q | --quiet | --no-quiet
     -c | --continue | --no-continue
     -Y | --yes | -N | --no
     -v | --verbose | --no-verbose
 
-Read debugger commands from a file named FILE.  Optional -v switch
-causes each command in FILE to be echoed as it is executed.  Option -Y
-sets the default value in any confirmation command to be 'yes' and -N
+Read debugger commands from a file named I<file>.  Optional C<-v> switch
+causes each command in FILE to be echoed as it is executed.  Option C<-Y>
+sets the default value in any confirmation command to be 'yes' and C<-N>
 sets the default value to 'no'.
 
-Option -q will turn off any debugger output that normally occurs in the
-running of the program.
+Option C<-q> will turn off any debugger output that normally occurs in
+the running of the program.
 
 An error in any command terminates execution of the command file
-unless option -c or --continue is given.
+unless option C<-c> or C<--continue> is given.
+=cut
 HELP
 
 # FIXME: put back in help.
 # Note that the command startup file ${Devel::Trepan::CMD_INITFILE_BASE} is read automatically
 # via a ${NAME} command the debugger is started.
 
-use constant DEFAULT_OPTIONS => {
+my $DEFAULT_OPTIONS = {
     abort_on_error => 0,
     confirm_val => 0,
     quiet => 0,
@@ -77,14 +81,14 @@ sub parse_options($$)
 {
     my ($self, $args) = @_;
     my $seen_yes_no = 0;
-    my $opts = DEFAULT_OPTIONS;
+    my %opts = %$DEFAULT_OPTIONS;
     my $result = &GetOptionsFromArray($args,
-          '--continue' => \$opts->{cont},
-          '--verbose'  => \$opts->{verbose},
-	  '--no'       => \$opts->{no},
-          '--yes'      => sub { $opts->{no} = 0; }
-	);
-    $opts;
+          '--continue' => \$opts{cont},
+          '--verbose'  => \$opts{verbose},
+          '--no'       => \$opts{no},
+          '--yes'      => sub { $opts{no} = 0; }
+        );
+    \%opts;
 }
 
 sub run($$)
@@ -95,25 +99,25 @@ sub run($$)
     my $options = parse_options($self, \@args);
     my $intf = $self->{proc}{interfaces};
     my $output  = $options->{quiet} ? Devel::Trepan::IO::OutputNull->new : 
-	$intf->[-1]{output};
+        $intf->[-1]{output};
 
     my $filename = $args->[-1];
     
     my $expanded_filename = abs_path(glob($filename));
     unless (defined $expanded_filename && -f $expanded_filename) {
-	my $mess = sprintf("Debugger command file '%s' is not found", $filename);
-	$self->errmsg($mess);
-	return 0;
+        my $mess = sprintf("Debugger command file '%s' is not found", $filename);
+        $self->errmsg($mess);
+        return 0;
     }
     unless(-r $expanded_filename) {
-	my $mess = sprintf("Debugger command file '%s' (%s) is not a readable file", $filename, $expanded_filename);
-	$self->errmsg($mess);
-	return 0;
+        my $mess = sprintf("Debugger command file '%s' (%s) is not a readable file", $filename, $expanded_filename);
+        $self->errmsg($mess);
+        return 0;
     }
     
     # Push a new debugger interface.
     my $script_intf = Devel::Trepan::Interface::Script->new($expanded_filename, 
-							    $output, $options);
+                                                            $output, $options);
     push @{$intf}, $script_intf;
 }
 

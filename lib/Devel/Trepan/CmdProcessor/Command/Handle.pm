@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#  Copyright (C) 2011 Rocky Bernstein
+#  Copyright (C) 2011-2012 Rocky Bernstein
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,6 +13,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+use warnings; no warnings 'redefine';
 
 package Devel::Trepan::CmdProcessor::Command::Handle;
 use English qw( -no_match_vars );
@@ -33,8 +34,10 @@ use strict; use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
-${NAME} [SIG [action1 action2 ...]]
+our $HELP = <<'HELP';
+=pod
+
+handle [SIG [action1 action2 ...]]
 
 Specify how to handle a signal SIG. SIG can be a signal name like
 SIGINT or a signal number like 2. The absolute value is used for
@@ -46,21 +49,37 @@ Arguments are signals and actions to apply to those signals.
 recognized actions include "stop", "nostop", "print", "noprint",
 "pass", "nopass", "ignore", or "noignore".
 
-- "Stop" means reenter debugger if this signal happens (implies "print" and
-  "nopass").
-- "Print" means print a message if this signal happens.
-- "Pass" means let program see this signal; otherwise the program see it.
-- "Ignore" is a synonym for "nopass"; "noignore" is a synonym for "pass".
+=over
+
+=item *
+
+C<stop> means reenter debugger if this signal happens (implies
+C<print> and C<nopass>).
+
+=item * 
+C<Print> means print a message if this signal happens.
+
+=item *
+C<Pass> means let program see this signal; otherwise the program see
+it.
+
+=item *
+C<Ignore> is a synonym for C<nopass>; C<noignore> is a synonym for
+C<pass>.
+
+=back
 
 Without any action names the current settings are shown.
 
-Examples:
-  handle INT         # Show current settings of SIGINT
-  handle SIGINT      # same as above
-  handle int         # same as above
-  handle 2           # Probably the same as above
-  handle -2          # the same as above
-  handle INT nostop  # Don't stop in the debugger on SIGINT
+=head2 Examples:
+
+ handle INT         # Show current settings of SIGINT
+ handle SIGINT      # same as above
+ handle int         # same as above
+ handle 2           # Probably the same as above
+ handle -2          # the same as above
+ handle INT nostop  # Don't stop in the debugger on SIGINT
+=cut
 HELP
 
 sub run($$) {
@@ -69,9 +88,9 @@ sub run($$) {
 
     my $sigmgr = $self->{dbgr}{sigmgr};
     if ($sigmgr->action($proc->{cmd_argstr}) &&
-	scalar(@{$args}) > 2) {
-	# Show results of recent change
-	$sigmgr->info_signal([$args->[1]]);
+        scalar(@{$args}) > 2) {
+        # Show results of recent change
+        $sigmgr->info_signal([$args->[1]]);
     }
 }
 

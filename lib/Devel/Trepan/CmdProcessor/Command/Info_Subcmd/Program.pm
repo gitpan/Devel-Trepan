@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011 Rocky Bernstein <rockb@cpan.org>
+# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine'; no warnings 'once';
 use rlib '../../../../..';
 
@@ -13,8 +13,15 @@ use vars qw(@ISA @SUBCMD_VARS);
 # Values inherited from parent
 use vars @Devel::Trepan::CmdProcessor::Command::Subcmd::SUBCMD_VARS;
 
-our $HELP = 'Information about debugged program and its environment';
+our $SHORT_HELP = 'Information about debugged program and its environment';
 our $MIN_ABBREV = length('pr');
+
+our $HELP = <<'HELP';
+=pod
+
+Information about debugged program and its environment
+=cut
+HELP
 
 sub run($$) 
 {
@@ -24,26 +31,26 @@ sub run($$)
     my $line = $frame->{line};
     my $m;
     if (defined($DB::ini_dollar0) && $DB::ini_dollar0) {
-	$m = sprintf "Program: %s.", $DB::ini_dollar0;
-	$proc->msg($m);
+        $m = sprintf "Program: %s.", $DB::ini_dollar0;
+        $proc->msg($m);
     }
     $m = sprintf "Program stop event: %s.", $proc->{event};
     $proc->msg($m);
-    if (defined($DB::dbline[$line]) && 0 != $DB::dbline[$line]) {
-    	$m = sprintf "COP address: 0x%x.", $DB::dbline[$line];
-    	$proc->msg($m);
+    if (defined($DB::OP_addr)) {
+        $m = sprintf "OP address: 0x%x.", $DB::OP_addr;
+        $proc->msg($m);
     }
     if ('return' eq $proc->{event}) {
-	$proc->{commands}{info}->run(['info', 'return']);
+        $proc->{commands}{info}->run(['info', 'return']);
     } elsif ('raise' eq  $proc->{event}) {
-    	# $self->msg($proc->core.hook_arg) if $proc->core.hook_arg;
+        # $self->msg($proc->core.hook_arg) if $proc->core.hook_arg;
     }
 
     if ($DB::brkpt) {
-    	my $m = sprintf('It is stopped at %sbreakpoint %d.',
-    		     $DB::brkpt->type eq 'tbrkpt' ? 'temporary ' : '',
-    		     $DB::brkpt->id);
-    	$proc->msg($m);
+        my $m = sprintf('It is stopped at %sbreakpoint %d.',
+                     $DB::brkpt->type eq 'tbrkpt' ? 'temporary ' : '',
+                     $DB::brkpt->id);
+        $proc->msg($m);
     }
 }
 
