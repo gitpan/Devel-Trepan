@@ -15,13 +15,13 @@ not run its Makefile.PL or Build.PL.
 Hash: SHA1
 
 SHA1 be0627fff2e8aef3d2a14d5d7486babc8a4873ba Artistic
-SHA1 8a0ec4929e2d910caa756aed43070bc34fe729b5 Build.PL
+SHA1 230496554d476669144634882e8e1f53bf06bddf Build.PL
 SHA1 bf1d2db35a693b51a256f85746c7f8fa2bfa8411 ChangeLog
-SHA1 8d637eeec34af8ba731791ab09c7dec70bdbb79f Changes
+SHA1 21c5b953f78c01f2245aa02bd72f406df4f149c1 Changes
 SHA1 067a2e4b5e1f36609f5aa66c5c12179cba00c36b GNUmakefile
 SHA1 b6604a6197cf6d7e65c9b7bd28ff14a818acbccc MANIFEST
-SHA1 93687384dd6e4021cb15f66124de64feea4a0dec META.json
-SHA1 c1b23a2c45487d57464af176dae1e58274ec286a META.yml
+SHA1 01ec1ed3d27fd054942fb3d1a06f961e8daf30f6 META.json
+SHA1 47b2497fe32fddf071ca8213626cbb0f4c910246 META.yml
 SHA1 4392538543b935c8622117536db605dbab481958 Makefile.PL
 SHA1 27e0506f65b8b9b1e9b3c524d4695c54ba81cf91 README
 SHA1 ee83868a72b6f539417dae15b0643fc3ce0c4625 README.md
@@ -41,7 +41,7 @@ SHA1 462c8ae7d94573cb504636acf754ca8fa568f52f example/test-module.pm
 SHA1 913d2fbcebc4a2d38f702f2098a24451a857c6b7 example/test-require.pl
 SHA1 8624bcdae55baeef00cd11d5dfcfa60f68710a02 gpl-3.0.txt
 SHA1 e537e17774d82570366949756b8067c264cb24ab ignore.txt
-SHA1 91f4180d3a2f6ea602f981beef40e9e7f22271e0 lib/Devel/Trepan.pm
+SHA1 b1c5d6d3c1148690c7a28d5bfe7a828bdb997095 lib/Devel/Trepan.pm
 SHA1 6b471d1dae95306838424b8f184d45f1235ca122 lib/Devel/Trepan/BrkptMgr.pm
 SHA1 a243ed0daddfb07ff43fff381b0c36d62d4db40d lib/Devel/Trepan/Client.pm
 SHA1 4404371ac595c3e6cae09817d8ca2679222c7c67 lib/Devel/Trepan/CmdProcessor.pm
@@ -91,7 +91,7 @@ SHA1 6a83983834185bf1e21e915bf55d62d8afe7c72d lib/Devel/Trepan/CmdProcessor/Comm
 SHA1 f4d2dbf39ccb1c75e2aed5cd30cc4922a9891bc0 lib/Devel/Trepan/CmdProcessor/Command/List.pm
 SHA1 586383fb8bc5324a39f7645b3a4d02eafdae7ec2 lib/Devel/Trepan/CmdProcessor/Command/Load.pm
 SHA1 5dc92c82655c463647c1b555343d4162bf152e38 lib/Devel/Trepan/CmdProcessor/Command/Load_Subcmd/Command.pm
-SHA1 1d3dd798552cfed10c718b129eddaccbfd452e0f lib/Devel/Trepan/CmdProcessor/Command/Load_Subcmd/Module.pm
+SHA1 2481e21cde3a11e2942a90a2b48c11c661f31ad8 lib/Devel/Trepan/CmdProcessor/Command/Load_Subcmd/Module.pm
 SHA1 a99352f697596c041f75e0c1b1960a22c8ed60ea lib/Devel/Trepan/CmdProcessor/Command/Macro.pm
 SHA1 f24f696e6ba373692e8df3388e3dd1282471ef28 lib/Devel/Trepan/CmdProcessor/Command/Next.pm
 SHA1 e064dfd6695bee49a7defa79bf40001346e95b4c lib/Devel/Trepan/CmdProcessor/Command/Quit.pm
@@ -200,7 +200,7 @@ SHA1 c8f04a2db2f73d199eb7f101d1be0a6960e23bfd lib/Devel/Trepan/Interface/ComCode
 SHA1 4e64ab583fb8012094f4ba1d28be763b660c62c3 lib/Devel/Trepan/Interface/Script.pm
 SHA1 ca0655051638abab7d419449ff893c98f069baae lib/Devel/Trepan/Interface/Server.pm
 SHA1 ca7e533790fa71b1ac40081356753c055655b855 lib/Devel/Trepan/Interface/User.pm
-SHA1 fda16448bd0bca6054537b13a0800b402dcfb999 lib/Devel/Trepan/Options.pm
+SHA1 d13a81c25935b97dc13f6f62bd26c8c5f6f09335 lib/Devel/Trepan/Options.pm
 SHA1 066c5820a78a060e5c355687bd232a610b7e7300 lib/Devel/Trepan/Pod2Text.pm
 SHA1 c3c7b44ecbd1e7068911d9b422fe7d738b735d44 lib/Devel/Trepan/Position.pm
 SHA1 0b1fcf21d8f8d770791933d30b2fe88064fa05c9 lib/Devel/Trepan/SigHandler.pm
@@ -241,7 +241,7 @@ SHA1 00e6f5467cec2d2d9c027305b64d4f22f405c7f2 t/20test-cont.t
 SHA1 f61cec1fe0189443539e91e8baab4ca03e228044 t/20test-debug.t
 SHA1 4fdad6b2125dd1f26584730c8dcb6a103e971503 t/20test-display.t
 SHA1 cb2eea2e538df8f069be371528f662e983b514d7 t/20test-dollar0.t
-SHA1 e933f939e6a8d2d2dd34163085866ef72c56f8e7 t/20test-eval.t
+SHA1 d83e2b277f8fddda88923d33b7f853c18b9db5eb t/20test-eval.t
 SHA1 33ad86c723c0bf8743722544f3e475b7e330ae9f t/20test-fin.t
 SHA1 158cdc86ad3d27ff4d937eb7795b65012d04d33f t/20test-line.t
 SHA1 eb3c4393eff6c5546083acddaace74fb42bb5aa3 t/20test-list1.t
@@ -324,7 +324,7 @@ SHA1 f3a543faf335e9dc0d9674ab8bf9525eec690158 t/data/watch2.right
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEARECAAYFAlBUry8ACgkQGo3lAIJ17CG4NgCeKWT+GKAkKDWEuyX1M23/5Kxr
-Ik4An0ozK8FcZUase9U6Gmz0XBvK+z/9
-=a/9E
+iEYEARECAAYFAlBWG44ACgkQGo3lAIJ17CHEHgCePJWugRh+IbQIZ8gOlh1F3YOC
+PjIAoIqG7+zxF+FEBQCoHzXIynzA2yuq
+=tkqv
 -----END PGP SIGNATURE-----

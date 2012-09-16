@@ -20,9 +20,9 @@ use Module::Build;
 use Config;
 use File::Basename;
 use File::Spec;
-
 my $dirname = dirname(__FILE__);
-do File::Spec->catfile(($dirname, qw(lib Devel Trepan.pm)));
+use rlib 'lib';
+use Devel::Trepan;
 
 my $release_status = ($Devel::Trepan::VERSION =~ /_/) ? 'testing' : 'stable';
 
@@ -50,6 +50,7 @@ my $builder = Module::Build->new(
 			      
     },
     build_requires => {
+        'rlib'                              => '0.02',
         # 'String::Diff'        => 0,
     },
     test_requires => {
@@ -59,7 +60,7 @@ my $builder = Module::Build->new(
 	'Data::Printer'                     => 0,
 	'Devel::Callsite'                   => 0,
 	'Eval::WithLexicals'                => 0,
-	'Pod::Text::Color'                  => 0,
+	'Pod::Text::Color'                  => 2.06,
 	'Term::ReadKey'                     => 0,
 	'Term::ReadLine::Perl'              => 0,
     },
@@ -72,7 +73,7 @@ my $builder = Module::Build->new(
 	'Getopt::Long'                      => '2.36',
         'Digest::SHA'                       => 0,
         'PadWalker'                         => 0,
-	'Pod::Text'                         => 0,
+	'Pod::Text'                         => 3.13,
         'Syntax::Highlight::Perl::Improved' => 0,
         'rlib'                              => '0.02',
         'version'                           => 0,
