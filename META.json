@@ -14,11 +14,6 @@
    },
    "name" : "Devel-Trepan",
    "prereqs" : {
-      "build" : {
-         "requires" : {
-            "rlib" : "0.02"
-         }
-      },
       "configure" : {
          "requires" : {
             "Module::Build" : "0.32"
@@ -62,7 +57,7 @@
       },
       "Devel::Trepan" : {
          "file" : "lib/Devel/Trepan.pm",
-         "version" : "0.37"
+         "version" : "0.38"
       },
       "Devel::Trepan::BrkptMgr" : {
          "file" : "lib/Devel/Trepan/BrkptMgr.pm",
@@ -685,5 +680,5 @@
          "url" : "http://github.com/rocky/Perl-Devel-Trepan"
       }
    },
-   "version" : "0.37"
+   "version" : "0.38"
 }

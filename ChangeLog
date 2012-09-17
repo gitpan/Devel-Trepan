@@ -1,3 +1,56 @@
+2012-09-17  Rocky Bernstein <rocky@cpan.org>
+
+	* Changes, lib/Devel/Trepan.pm, lib/Devel/Trepan/DB/LineCache.pm: 
+	Get ready for relase 0.38
+
+2012-09-16  Rocky Bernstein <rocky@cpan.org>
+
+	* Build.PL, META.json, META.yml, example/eval.pl,
+	lib/Devel/Trepan.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Backtrace.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Break.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Condition.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Debug.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Delete.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Disable.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Down.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Enable.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Eval.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Frame.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Kill.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Quit.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/TBreak.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Up.pm,
+	lib/Devel/Trepan/CmdProcessor/Location.pm,
+	lib/Devel/Trepan/DB/Eval.pm, lib/Devel/Trepan/DB/LineCache.pm,
+	t/10test-linecache.t, t/20test-eval.t, t/data/debug.right,
+	t/data/eval2.right, t/data/my.right, t/data/next2.right: 
+	DB::LineCache.pm, Location.pm: Redo the way we look for unfinished
+	source lines. Command/*.pm; add Boldening in command syntax.
+	Build.PL: Use "use lib" rather than "use rlib".
+
+2012-09-16  rocky <rocky@cpan.org>
+
+	* Build.PL, Changes, lib/Devel/Trepan.pm,
+	lib/Devel/Trepan/Options.pm: Fix some CPAN Tester failures and pod
+	formatting.
+
+2012-09-16  rocky <rocky@cpan.org>
+
+	* Build.PL: Need to set minimum requirements on Pod::Text. And we'll
+	also set for Pod::Text::Color too.
+
+2012-09-16  Rocky Bernstein <rocky@cpan.org>
+
+	* t/20test-eval.t: Data::Dumper tab variation on some smokers.
+
+2012-09-15  Rocky Bernstein <rocky@cpan.org>
+
+	* ChangeLog, lib/Devel/Trepan.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Load_Subcmd/Module.pm: Small
+	stuff: Trepan.pm: pod improvements and bump version. Module.pm:
+	untabify.
+
 2012-09-15  Rocky Bernstein <rocky@cpan.org>
 
 	* ChangeLog, Changes, META.json, META.yml: I said get ready for
