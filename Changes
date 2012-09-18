@@ -1,5 +1,8 @@
 Revision history for Devel-Trepan
 
+0.42 - Sep 18, 2012
+- Botched 0.41 release
+
 0.41 - Sep 18, 2012
 - release to asssist pending Devel::Trepan::Disassemble and to see if we
   can resolve a rlib weirdness.
