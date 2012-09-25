@@ -6,6 +6,8 @@
 
 use rlib '../..';
 
+=pod
+
 =head1 C<DB>
 
 Devel::Trepan customized DB package. Down the line this should be split off
@@ -23,7 +25,8 @@ use vars qw($running $caller
             $fall_off_on_end
             $stop @clients $ready $tid @saved
             $init_dollar0 $OS_STARTUP_DIR
-            $HAVE_DEVEL_CALLSITE);
+            $OP_addr
+            %HAVE_MODULE);
 
 use Devel::Trepan::DB::Backtrace;
 use Devel::Trepan::DB::Breakpoint;
@@ -137,7 +140,7 @@ BEGIN {
     # No extry/exit tracing.
     $frame = 0;
 
-    $HAVE_DEVEL_CALLSITE = eval("use Devel::Callsite; 1") ? 1 : 0;
+    $HAVE_MODULE{'Devel::Callsite'} = eval("use Devel::Callsite; 1") ? 1 : 0;
 
 }
 
@@ -148,6 +151,8 @@ END {
     }
     $DB::ready = 0;
 } 
+
+sub save_vars();
 
 ####
 # this is called by Perl for every statement
@@ -165,7 +170,7 @@ sub DB {
     return unless $ready && !$in_debugger;
     local $in_debugger = 1;
     @DB::_ = @_;
-    &save;
+    save_vars();
 
     # Since DB::DB gets called after every line, we can use caller() to
     # figure out where we last were executing. Sneaky, eh? This works because
@@ -179,7 +184,7 @@ sub DB {
 
     local $filename_ini = $filename;
 
-    local $OP_addr = ($HAVE_DEVEL_CALLSITE) 
+    local $OP_addr = ($HAVE_MODULE{'Devel::Callsite'})
         ? Devel::Callsite::callsite() : undef; 
 
     return if @skippkg and grep { $_ eq $DB::package } @skippkg;
@@ -366,7 +371,7 @@ sub DB {
      $OUTPUT_RECORD_SEPARATOR, $WARNING) = @saved;
     ();
 }
-  
+
 =head1 RESTART SUPPORT
 
 These routines are used to store (and restore) lists of items in environment 
@@ -422,9 +427,16 @@ sub get_list {
 #         no compile-time subroutine call allowed before this point           #
 ###############################################################################
 
-use strict;                # this can run only after DB() and sub() are defined
+# this can run only after DB() and sub() are defined
+use strict;
 
-sub save($) {
+# Need this until we replace "save" with "save_vars" in Enbugger/trepan.pm
+sub save { die "Remember to update Enbugger/trepan.pm" };
+
+# Like DB::save from perl5db.pl, but want to use another name to
+# reduce prototype conflict of save $ vs none if we use perl5db.pl to
+# debug Devel::Trepan.
+sub save_vars() {
   @saved = ( $EVAL_ERROR, $ERRNO, $EXTENDED_OS_ERROR, 
              $OUTPUT_FIELD_SEPARATOR, 
              $INPUT_RECORD_SEPARATOR, 
@@ -691,13 +703,10 @@ sub evalcode {
 }
 
 sub ready {
-  my $s = shift;
-  return $ready = 1;
+    my $s = shift;
+    return $ready = 1;
 }
 
-# stubs
-    
-sub stop {}
 sub idle {}
 sub cleanup {}
 sub output {}
@@ -728,13 +737,11 @@ DB - programmatic interface to the Perl debugging API
     CLIENT->step()              # single step
     CLIENT->next()              # step over
     CLIENT->finish()            # stop before finishing the current subroutine
-    CLIENT->backtrace()         # return the call stack description
     CLIENT->ready()             # call when client setup is done
     CLIENT->trace_toggle()      # toggle subroutine call trace mode
     CLIENT->subs([SUBS])        # return subroutine information
     CLIENT->files()             # return list of all files known to DB
     CLIENT->loadfile(FILE,LINE) # load a file and let other clients know
-    CLIENT->line_events()       # return info on lines with actions
     CLIENT->set_break([WHERE],[COND])
     CLIENT->set_tbreak([WHERE])
     CLIENT->clr_breaks([LIST])
@@ -912,10 +919,6 @@ of these methods.
 =item CLIENT->init()
 
 Called after debug API inits itself.
-
-=item CLIENT->stop()
-
-Called when execution stops (w/ args file, line).
 
 =item CLIENT->idle(BOOLEAN, EVENT, ARGS)
 
