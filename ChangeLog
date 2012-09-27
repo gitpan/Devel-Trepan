@@ -1,7 +1,13 @@
+2012-09-26  Rocky Bernstein <rocky@cpan.org>
+
+	* Build.PL, ChangeLog, Changes, MANIFEST, META.json, META.yml,
+	lib/Devel/Trepan.pm, lib/Devel/Trepan/IO/TCPServer.pm,
+	lib/Devel/Trepan/Version.pm: Get ready for 0.44 release
+
 2012-09-25  Rocky Bernstein <rocky@cpan.org>
 
 	* Changes, lib/Devel/Trepan/Version.pm: Get ready for 0.43 release.
-
+	Change default host on server to 127.0.0.1 from localhost
 
 2012-09-25  Rocky Bernstein <rocky@cpan.org>
 

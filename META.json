@@ -31,6 +31,7 @@
          "requires" : {
             "Array::Columnize" : "1.01",
             "Data::Dumper" : "0",
+            "Devel::Trepan::Version" : "0",
             "Digest::SHA" : "0",
             "Getopt::Long" : "2.36",
             "PadWalker" : "0",
@@ -57,7 +58,7 @@
       },
       "Devel::Trepan" : {
          "file" : "lib/Devel/Trepan.pm",
-         "version" : 0
+         "version" : "0.43"
       },
       "Devel::Trepan::BrkptMgr" : {
          "file" : "lib/Devel/Trepan/BrkptMgr.pm",
@@ -655,6 +656,10 @@
          "file" : "lib/Devel/Trepan/Util.pm",
          "version" : 0
       },
+      "Devel::Trepan::Version" : {
+         "file" : "lib/Devel/Trepan/Version.pm",
+         "version" : "0.44"
+      },
       "Devel::Trepan::WatchMgr" : {
          "file" : "lib/Devel/Trepan/WatchMgr.pm",
          "version" : 0
@@ -680,5 +685,5 @@
          "url" : "http://github.com/rocky/Perl-Devel-Trepan"
       }
    },
-   "version" : "0.43"
+   "version" : "0.44"
 }

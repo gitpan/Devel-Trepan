@@ -15,13 +15,13 @@ not run its Makefile.PL or Build.PL.
 Hash: SHA1
 
 SHA1 be0627fff2e8aef3d2a14d5d7486babc8a4873ba Artistic
-SHA1 3cdbeac6252e4c2c9ccee09d0ef7d2480161aa40 Build.PL
-SHA1 440fccf1c0bba4ac7a466a63dc4d627fa9a7d460 ChangeLog
-SHA1 1093bbad318ee2bb13cc1dbbcb4f611ace8d3b7e Changes
+SHA1 61194064bacb89a3f626744572ad6d8373675fe3 Build.PL
+SHA1 6236f5167657c2ac601e5e9b01ddd79cb773f11e ChangeLog
+SHA1 59cf3fe3682fe739dc6846aa14d7e72a9d1ebdb5 Changes
 SHA1 067a2e4b5e1f36609f5aa66c5c12179cba00c36b GNUmakefile
-SHA1 7165b3e0ddc799cef32295c012eac0851b10829f MANIFEST
-SHA1 7a16feb25c3b1cc06454861f9832b1c85d0864dd META.json
-SHA1 31b547438b64e3ce71dbb17ac24add01ffa3e672 META.yml
+SHA1 6db98c2a37c2328a3f81ba6e26da6e78a33df547 MANIFEST
+SHA1 394f9ad812ba4c1cdf3253a310957965b9817277 META.json
+SHA1 f194b0da1e7f25f733d8d590bc317f6c5cffb608 META.yml
 SHA1 4392538543b935c8622117536db605dbab481958 Makefile.PL
 SHA1 cacac91ad525d1168c2092de09e57ee5c1a769e0 README
 SHA1 ee83868a72b6f539417dae15b0643fc3ce0c4625 README.md
@@ -42,7 +42,7 @@ SHA1 462c8ae7d94573cb504636acf754ca8fa568f52f example/test-module.pm
 SHA1 913d2fbcebc4a2d38f702f2098a24451a857c6b7 example/test-require.pl
 SHA1 8624bcdae55baeef00cd11d5dfcfa60f68710a02 gpl-3.0.txt
 SHA1 e537e17774d82570366949756b8067c264cb24ab ignore.txt
-SHA1 8a5885038abcafea93caf5f59d5925e2adef4f9c lib/Devel/Trepan.pm
+SHA1 41e23b696d9b74215d7179ae8f60063a7689e3d9 lib/Devel/Trepan.pm
 SHA1 6b471d1dae95306838424b8f184d45f1235ca122 lib/Devel/Trepan/BrkptMgr.pm
 SHA1 a243ed0daddfb07ff43fff381b0c36d62d4db40d lib/Devel/Trepan/Client.pm
 SHA1 4404371ac595c3e6cae09817d8ca2679222c7c67 lib/Devel/Trepan/CmdProcessor.pm
@@ -207,6 +207,7 @@ SHA1 c3c7b44ecbd1e7068911d9b422fe7d738b735d44 lib/Devel/Trepan/Position.pm
 SHA1 0b1fcf21d8f8d770791933d30b2fe88064fa05c9 lib/Devel/Trepan/SigHandler.pm
 SHA1 1ea785ed4cdd66ddfbc936bbf595d787a906caff lib/Devel/Trepan/Terminated.pm
 SHA1 06d46d8b7a516723cab789f0db1f255a20ca1387 lib/Devel/Trepan/Util.pm
+SHA1 1b2822ebe6e66fb47e729524b8ada5a255e77231 lib/Devel/Trepan/Version.pm
 SHA1 4d752c5d32c078cc064e887f71b8e7f73af6578b lib/Devel/Trepan/WatchMgr.pm
 SHA1 0028fef9be7783d9eba29ae4d3940cc99cc8d14e t/00test-pod.t
 SHA1 84295673d3babb2d2a6b5db2e45c16e3c1818a8d t/10test-brkptmgr.t
@@ -326,7 +327,7 @@ SHA1 f3a543faf335e9dc0d9674ab8bf9525eec690158 t/data/watch2.right
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEARECAAYFAlBiRDYACgkQGo3lAIJ17CEbzACfbHUb1GqkqbO1xOW/rIp+rWKU
-jwAAn0QuHRpqIklfbu4gGcemsUS625Hm
-=0BM1
+iEYEARECAAYFAlBjrzwACgkQGo3lAIJ17CGP3gCfZm4x81xJrcs3yjg3atVv59SC
+X5IAn2XE4vmEFH9XUPWQ71ySr7u0EMo3
+=gtf6
 -----END PGP SIGNATURE-----
