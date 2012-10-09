@@ -3,6 +3,7 @@ bin/trepan.pl
 Build.PL			Proto Build creator
 ChangeLog
 Changes
+example/action-bug.pl
 example/eval.pl
 example/except-bug1.pl
 example/fns.pl
@@ -231,6 +232,7 @@ t/20test-display.t
 t/20test-eval.t
 t/20test-fin.t
 t/20test-__FILE__.t
+t/20test-action.t
 t/20test-line.t
 t/20test-list1.t
 t/20test-list2.t
@@ -248,6 +250,8 @@ t/20test-trepanpl-opts.t
 t/20test-watch1.t
 t/data/__FILE__.cmd
 t/data/__FILE__.right
+t/data/action.cmd
+t/data/action.right
 t/data/alias.cmd
 t/data/alias.right
 t/data/autolist.cmd
