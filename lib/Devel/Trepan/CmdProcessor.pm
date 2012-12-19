@@ -26,7 +26,7 @@ unless (@ISA) {
     require Devel::Trepan::BrkptMgr;
     eval "require Devel::Trepan::DB::Display";
     require Devel::Trepan::Interface::User;
-    require Devel::Trepan::CmdProcessor::Virtual;
+    require Devel::Trepan::Processor;
     require Devel::Trepan::CmdProcessor::Alias;
     require Devel::Trepan::CmdProcessor::Default;
     require Devel::Trepan::CmdProcessor::Msg;
@@ -35,14 +35,13 @@ unless (@ISA) {
     require Devel::Trepan::CmdProcessor::Frame;
     require Devel::Trepan::CmdProcessor::Location;
     require Devel::Trepan::CmdProcessor::Eval;
-    require Devel::Trepan::CmdProcessor::Running;
     require Devel::Trepan::CmdProcessor::Validate;
 }
 use strict;
 
 use Devel::Trepan::Util qw(hash_merge uniq_abbrev parse_eval_sigil);
 
-@ISA = qw(Exporter);
+@ISA = qw(Exporter Devel::Trepan::Processor);
 
 BEGIN {
     @DB::D = ();  # Place to save eval results;
@@ -59,8 +58,15 @@ sub new($;$$$) {
                                                     $settings->{readline}});
         $interfaces = [$intf];
     }
-    my $self = 
-      Devel::Trepan::CmdProcessor::Virtual::new($class, $interfaces, $settings);
+
+    $settings ||= {};
+    my $self = {
+        class      => $class,
+        interfaces => $interfaces,
+        settings   => $settings,
+    };
+    bless ($self, $class);
+
     $self->{actions}        = Devel::Trepan::BrkptMgr->new($dbgr);
     $self->{brkpts}         = Devel::Trepan::BrkptMgr->new($dbgr);
     $self->{displays}       = Devel::Trepan::DisplayMgr->new($dbgr);
@@ -119,13 +125,17 @@ sub compute_prompt($)
             '(' x $DB::level, $thread_str, ')' x $DB::level);
 }
 
-sub DESTROY($)
+sub terminated($)
 {
     my $self = shift;
+    $self->msg(sprintf("%sThat's all, folks...",
+		       (defined($Devel::Trepan::PROGRAM) ? 
+			"${Devel::Trepan::PROGRAM}: " : '')));
+
     # breakpoint_finalize
 }
 
-# Check that we meed the criteria that cmd specifies it needs
+# Check that we meet the criteria that cmd specifies it needs
 sub ok_for_running ($$$$) {
     my ($self, $cmd, $name, $nargs) = @_;
     # TODO check execution_set against execution status.

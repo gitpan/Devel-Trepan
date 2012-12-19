@@ -9,7 +9,7 @@ use Devel::Trepan::Core;
 
 package Devel::Trepan;
 
-use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $TREPAN_CMDPROC);
+use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $TREPAN_CMDPROC $PROGRAM);
 use Exporter;
 
 @EXPORT = qw(debugger);
@@ -18,8 +18,9 @@ use Exporter;
 
 use constant PROGRAM => 'trepan.pl';
 use version; 
-$VERSION='0.45_01'; # To fool CPAN indexer. Is <= real version
+$VERSION='0.47'; # To fool CPAN indexer. Is <= real version
 $VERSION = $Devel::Trepan::Version::VERSION;
+$PROGRAM = PROGRAM;
 
 sub show_version() {
     PROGRAM . ", version $Devel::Trepan::VERSION";

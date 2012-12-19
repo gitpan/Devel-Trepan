@@ -37,7 +37,7 @@ sub new
     my $self = {};
     #  FIXME if $script_name is invalid, we get undef $fh and then
     # Interface->new uses STDIN. 
-    my $fh = IO::File->new($script_name, "r");
+    my $fh = IO::File->new($script_name, 'r');
     $self = Devel::Trepan::Interface->new($fh, $out, $opts);
     $self->{script_name}   = $script_name;
     $self->{input_lineno}  = 0;
@@ -104,6 +104,13 @@ sub msg($$)
 }
 
 sub is_interactive() { 0; }
+
+sub is_closed($) 
+{
+    my($self)  = shift;
+    $self->{input}->eof;
+}
+
 sub has_completion() { 0; }
 sub has_term_readline($) { 0; }
 
