@@ -177,11 +177,12 @@ sub read_command($;$) {
     my $last = $self->readline($prompt);
     my $line = '';
     $prompt .= '>> '; # continuation
+    $last ||= '';
     while ($last && '\\' eq substr($last, -1)) { 
         $line .= substr($last, 0, -1) . "\n";
         $last = $self->readline($prompt);
     }
-    $line .= $last;
+    $line .= $last if defined $last;
     return $line;
 }
 

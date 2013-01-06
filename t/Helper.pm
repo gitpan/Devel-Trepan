@@ -1,24 +1,26 @@
 use warnings; use strict;
 use Test::More;
-use File::Spec;
-use File::Basename;
-my $trepanpl = File::Spec->catfile(dirname(__FILE__), qw(.. bin trepan.pl));
-my $debug = $^W;
+use File::Basename qw(dirname basename); use File::Spec;
 
 package Helper;
-use File::Basename qw(dirname); use File::Spec;
 use English qw( -no_match_vars ) ;
 use Config;
+use File::Basename qw(dirname basename); use File::Spec;
 require Exporter;
 our (@ISA, @EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(cmd_file prog_file run_debugger);
 
+my $trepanpl = File::Spec->catfile(dirname(__FILE__), qw(.. bin trepan.pl));
+my $debug = $^W;
+
 # Return the natural command file assocated with a test.
 # For file /a/b/t/20test-foo.t it is foo.cmd
-sub cmd_file()
+sub cmd_file(;$)
 {
-    my ($pkg, $filename) = caller;
+    my ($level) = @_;
+    $level = 0 unless $level;
+    my ($pkg, $filename) = caller($level);
     $filename =~ s/^.*20test-(.+)\.t$/$1/;
     return $filename . '.cmd';
 }
@@ -43,11 +45,14 @@ sub prog_file(;$)
 
 # Runs debugger in subshell. 0 is returned if everything went okay.
 # nonzero if something went wrong.
-sub run_debugger($$;$$)
+sub run_debugger($;$$$)
 {
     my ($test_invoke, $cmd_filename, $right_filename, $opts) = @_;
     $opts = {} unless defined $opts;
     $opts->{do_test} = 1 unless exists $opts->{do_test};
+    unless ($cmd_filename) {
+	$cmd_filename = cmd_file(1);
+    }
     Test::More::note( "running $test_invoke with $cmd_filename" );
     my $run_opts = $opts->{run_opts} || 
 	'--basename --nx --no-highlight --fall-off-end';
@@ -102,10 +107,7 @@ sub run_debugger($$;$$)
 	# FIXME use a better diff test.
 	if ($OSNAME eq 'MSWin32') {
 	    # Windows doesn't do diff.
-	    print "Got:\n";
-	    print $output, "\n"; 
-	    print "Need:\n";
-	    print $right_string, "\n"
+	    diag("Got:\n", $output, "Need:\n", $right_string);
 	} else {
 	    my $output = `diff -u $right_filename $got_filename 2>&1`;
 	    my $rc = $? >> 8;
