@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011, 2012 Rocky Bernstein <rocky@cpan.org>
-use warnings;  
+use warnings;
 # FIXME: Can't use strict;
 
 use rlib '../..';
+
+package Devel::Trepan::Core;
+
+use Devel::Trepan::DB::Use;
 use Devel::Trepan::DB;
 use Devel::Trepan::DB::LineCache;  # for remap_e_string_to_file();
 use Devel::Trepan::CmdProcessor;
@@ -14,7 +18,6 @@ use Devel::Trepan::Interface::Script;
 use Devel::Trepan::Interface::Server;
 use Devel::Trepan::Util;
 
-package Devel::Trepan::Core;
 use vars qw(@ISA $dbgr $HAVE_BULLWINKLE);
 
 BEGIN {
@@ -47,6 +50,8 @@ sub new {
     bless $self, $class;
     $self->awaken();
     $self->skippkg('Devel::Trepan::Core');
+    $self->skippkg('Devel::Trepan::DB::Use');
+    $self->skippkg('SelfLoader');
     $self->register();
     $self->ready();
     return $self;
@@ -54,13 +59,13 @@ sub new {
 
 # Called when debugger is ready for reading commands. Main
 # entry point.
-sub idle($$$) 
+sub idle($$$)
 {
     my ($self, $event, $args) = @_;
     my $proc = $self->{proc};
     $event = 'terminated' if $DB::package eq 'Devel::Trepan::Terminated';
     if ($self->{need_e_remap} && $DB::filename eq '-e') {
-        DB::LineCache::remap_dbline_to_file();
+        remap_dbline_to_file();
         $self->{need_e_remap} = 0;
     }
 
@@ -86,7 +91,7 @@ sub signal_handler($$$)
     $DB::signal = 2;
 }
 
-sub output($) 
+sub output($)
 {
     my ($self, $msg) = @_;
     my $proc = $self->{proc};
@@ -94,7 +99,7 @@ sub output($)
     $proc->msg($msg);
 }
 
-sub warning($) 
+sub warning($)
 {
     my ($self, $msg) = @_;
     my $proc = $self->{proc};
@@ -129,7 +134,7 @@ sub awaken($;$) {
 	$bw_opts = {} unless ref($bw_opts) eq 'HASH';
 	if (defined $batch_filename) {
 	    my $fh = IO::File->new($batch_filename, 'r');
-	    $bw_opts = {input => $fh, 
+	    $bw_opts = {input => $fh,
 			bw_opts => {
 			    echo_read  => 1,
 			    input_opts => {readline => 0}}
@@ -139,26 +144,26 @@ sub awaken($;$) {
     } else {
 	$batch_filename = $opts->{batchfile} unless defined $batch_filename;
 	my %cmdproc_opts = ();
-	for my $field 
+	for my $field
 	    (qw(basename cmddir highlight readline traceprint)) {
 		# print "field $field $opts->{$field}\n";
 		$cmdproc_opts{$field} = $opts->{$field};
 	}
-	
+
 	if (defined $batch_filename) {
 	    my $result = Devel::Trepan::Util::invalid_filename($batch_filename);
 	    if (defined $result) {
-		print STDERR "$result\n" 
+		print STDERR "$result\n"
 	    } else {
 		my $output  = Devel::Trepan::IO::Output->new;
-		my $script_opts = 
+		my $script_opts =
 		    $opts->{testing} ? {abort_on_error => 0} : {};
-		my $script_intf = 
-		    Devel::Trepan::Interface::Script->new($batch_filename, 
-							  $output, 
+		my $script_intf =
+		    Devel::Trepan::Interface::Script->new($batch_filename,
+							  $output,
 							  $script_opts);
-		$proc = Devel::Trepan::CmdProcessor->new([$script_intf], 
-							    $self, 
+		$proc = Devel::Trepan::CmdProcessor->new([$script_intf],
+							    $self,
 							    \%cmdproc_opts);
 		$self->{proc} = $proc;
 		$main::TREPAN_CMDPROC = $self->{proc};
@@ -167,7 +172,7 @@ sub awaken($;$) {
 	    my $intf = undef;
 	    if (defined($dbgr) && exists($dbgr->{proc})) {
 		$intf = $dbgr->{proc}{interfaces};
-		$intf->[-1]{input}{term_readline} = $opts->{readline} if 
+		$intf->[-1]{input}{term_readline} = $opts->{readline} if
 		    exists($opts->{readline});
 	    }
 	    if ($opts->{server}) {
@@ -181,11 +186,11 @@ sub awaken($;$) {
 							  $server_opts)
 		    ];
 	    }
-	    $proc = Devel::Trepan::CmdProcessor->new($intf, $self, 
+	    $proc = Devel::Trepan::CmdProcessor->new($intf, $self,
 							\%cmdproc_opts);
 	    $main::TREPAN_CMDPROC = $self->{proc};
 	    $opts = {} unless defined $opts;
-	    
+
 	    for my $startup_file (@{$opts->{cmdfiles}}) {
 		add_startup_files($proc, $startup_file);
 	    }
@@ -196,7 +201,7 @@ sub awaken($;$) {
 	$proc->{skip_count} = -1 if $opts->{traceprint};
     }
     $self->{proc} = $proc;
-    $self->{sigmgr} = 
+    $self->{sigmgr} =
         Devel::Trepan::SigMgr->new(sub{ $DB::running = 0; $DB::single = 0;
                                         $self->signal_handler(@_) },
                                    sub {$proc->msg(@_)},
@@ -210,7 +215,7 @@ sub display_lists ($)
     return $self->{proc}{displays}{list};
 }
 
-END { 
+END {
     $DB::ready = 0;
 };
 

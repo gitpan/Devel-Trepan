@@ -1,23 +1,29 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011-2013 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2013 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine'; no warnings 'once';
 use rlib '../../../../..';
 use strict;
 use vars qw(@ISA @SUBCMD_VARS);
 
-package Devel::Trepan::CmdProcessor::Command::Set::Max;
+package Devel::Trepan::CmdProcessor::Command::Set::Substitute;
 
 use Devel::Trepan::CmdProcessor::Command::Subcmd::Core;
 use Devel::Trepan::CmdProcessor::Command::Subcmd::SubsubMgr;
 use vars qw(@ISA @SUBCMD_VARS);
-our $MIN_ABBREV = length('ma');
+our $MIN_ABBREV = length('sub');
 our $HELP   = <<"HELP";
-Set maximum length for things which may have unbounded size.
+=pod
 
-See C<help set max *> for a list of subcommands or C<help set max I<name>>
-for help on a particular max setting.
+Set filename remapping.
+
+Sometimes the filename or line ranges reported inside the debugger
+might not match the filenames or line ranges where you can find the
+source in the OS filesystem. This may happen because of pathnames do
+not match or program text comes from evaluated lines in code.
+=cut
 HELP
-our $SHORT_HELP = "Set maximum length sizes of various things";
+
+our $SHORT_HELP = "Set filename remapping";
 
 @ISA = qw(Devel::Trepan::CmdProcessor::Command::SubsubcmdMgr);
 

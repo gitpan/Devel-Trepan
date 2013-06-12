@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012 Rocky Bernstein <rocky@cpan.org> 
+# Copyright (C) 2012-2013 Rocky Bernstein <rocky@cpan.org>
 use strict; use warnings;
 use rlib '../../..';
 use Devel::Trepan::DB::LineCache; # for map_file
@@ -51,7 +51,7 @@ sub frame_low_high($;$)
 sub frame_setup($$)
 {
     my ($self, $frame_aref) = @_;
-    
+
     if (defined $frame_aref) {
         $self->{frames} = $frame_aref;
         $self->{stack_size}    = $#{$self->{frames}}+1;
@@ -71,7 +71,7 @@ sub frame_setup($$)
         } else {
             while (my ($pkg, $file, $line, $fn) = caller($i++)) {
                 last if 'DB::DB' eq $fn or ('DB' eq $pkg && 'DB' eq $fn);
-            } 
+            }
             if ($stack_size <= 0) {
                 # Dynamic debugging didn't set $DB::stack_depth correctly.
                 my $j=$i;
@@ -80,6 +80,7 @@ sub frame_setup($$)
                 }
                 $stack_size++;
                 $DB::stack_depth = $j;
+		$stack_size -= ($j-3);
             } else {
                 $stack_size -= ($i-3);
             }
@@ -98,7 +99,12 @@ sub frame_setup($$)
 sub filename($)
 {
     my $self = shift;
-    DB::LineCache::map_file($self->{frame}{file});
+    my $filename = $self->{frame}{file};
+    if (filename_is_eval($filename)) {
+	return $filename;
+    } else {
+	return map_file($filename);
+    }
 }
 
 sub funcname($)
@@ -107,7 +113,7 @@ sub funcname($)
     $self->{frame}{fn};
 }
 
-sub get_frame($$$) 
+sub get_frame($$$)
 {
     my ($self, $frame_num, $absolute_pos) = @_;
     my $stack_size = $self->{stack_size};
@@ -145,15 +151,15 @@ sub print_stack_entry()
 {
     die "This should have been implemented somewhere else"
 }
-    
-sub print_stack_trace_from_to($$$$$) 
+
+sub print_stack_trace_from_to($$$$$)
 {
     die "This should have been implemented somewhere else"
-}    
+}
 
 # Print `count' frame entries
 sub print_stack_trace($$$)
-{ 
+{
     die "This should have been implemented somewhere else"
 }
 

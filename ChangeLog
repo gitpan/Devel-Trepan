@@ -1,3 +1,213 @@
+2013-06-11  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/CmdProcessor/Command/List.pm, t/Helper.pm: Had
+	dropped up arrow on "list" command for eval-derived listings with
+	temporary names
+
+2013-06-11  Rocky Bernstein <rocky@cpan.org>
+
+	* t/Helper.pm: Funky terminals (like xterm on cygwin) can mess up
+	output comparisons.
+
+2013-06-10  Rocky Bernstein <rocky@cpan.org>
+
+	* Changes, MANIFEST,
+	lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Substitute_Subcmd/
+	String.pm, lib/Devel/Trepan/CmdProcessor/Location.pm,
+	lib/Devel/Trepan/DB/Eval.pm, lib/Devel/Trepan/DB/LineCache.pm,
+	lib/Devel/Trepan/Processor/Frame.pm, t/20test-debug.t,
+	t/data/debug.right, t/data/eval2.right: Add "Set Substitute Path".
+	Eval substitution fixes.
+
+2013-06-10  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/CmdProcessor/Command/Info.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Set.pm: Last change was a
+	little wrong - move use rlib inside package
+
+2013-06-10  rocky <rocky@cpan.org>
+
+	* lib/Devel/Trepan/CmdProcessor/Command/Info.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Set.pm: Moving use allows
+	prevents installed Devel::Trepan from getting used
+
+2013-06-09  Rocky Bernstein <rocky@cpan.org>
+
+	*
+	lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Substitute_Subcmd/
+	Path.pm: Path.pm pod format problem in doc.
+
+2013-06-09  Rocky Bernstein <rocky@cpan.org>
+
+	* MANIFEST, lib/Devel/Trepan/IO/Input.pm: Input.pm: Deal with
+	Term::ReadLine::Perl5 yet again, mostly disabled. MANIFEST: newly
+	added files. Sort now.
+
+2013-06-09  Rocky Bernstein <rocky@cpan.org>
+
+	* example/selfloadtest.pl: And simpler
+
+2013-06-09  Rocky Bernstein <rocky@cpan.org>
+
+	* example/selfloadtest.pl: Even simpler.
+
+2013-06-09  Rocky Bernstein <rocky@cpan.org>
+
+	* example/selfloadtest.pl: Don't need rlib here
+
+2013-06-08  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/CmdProcessor.pm, lib/Devel/Trepan/DB/Display.pm: 
+	Devel::Trepan::DisplayMgr -> Devel::Trepan::DB::DisplayMgr
+
+2013-06-08  Rocky Bernstein <rocky@cpan.org>
+
+	* example/selfloadtest.pl,
+	lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Substitute.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Substitute_Subcmd/
+	Path.pm, lib/Devel/Trepan/Core.pm,
+	lib/Devel/Trepan/DB/SelfLoader.pm: Core.pm: Don't trace into
+	SelfLoader now that we know it works. selfloadertest.pl: this really
+	works now. Add "set substitute command". SelfLoader.pm:
+	protoype->prototype.
+
+2013-06-08  Rocky Bernstein <rocky@cpan.org>
+
+	* ChangeLog, Changes: Update ChangeLog and note just-added "set
+	substitute path" command
+
+2013-06-08  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/CmdProcessor/Command/Break.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Files.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/List.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Display_Subcmd/Eva
+	l.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Highlight.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Subcmd/SubsubMgr.pm,
+	lib/Devel/Trepan/CmdProcessor/Load.pm,
+	lib/Devel/Trepan/CmdProcessor/Location.pm,
+	lib/Devel/Trepan/CmdProcessor/Validate.pm,
+	lib/Devel/Trepan/Core.pm, lib/Devel/Trepan/DB/LineCache.pm,
+	lib/Devel/Trepan/Processor/Frame.pm, t/10test-linecache.t: 
+	DB::LineCache -> Devel::Trepan::DB::LineCache which is more
+	accurate.
+
+2013-06-08  Rocky Bernstein <rocky@cpan.org>
+
+	* example/selfloadtest.pl,
+	lib/Devel/Trepan/CmdProcessor/Location.pm,
+	lib/Devel/Trepan/Core.pm, lib/Devel/Trepan/DB.pm,
+	lib/Devel/Trepan/DB/Backtrace.pm, lib/Devel/Trepan/DB/LineCache.pm,
+	lib/Devel/Trepan/DB/SelfLoader.pm, lib/Devel/Trepan/DB/Use.pm: Start
+	dealing with tracing into use statements and closer to handling
+	SelfLoader.
+
+2013-06-07  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/DB/LineCache.pm: Some more DB::LineCache cleanup
+
+2013-06-07  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/CmdProcessor.pm,
+	lib/Devel/Trepan/CmdProcessor/Command.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Help.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Set_Subcmd/Max.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Subcmd/Core.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Subcmd/SubMgr.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Subcmd/SubsubMgr.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Subcmd/Subsubcmd.pm,
+	lib/Devel/Trepan/CmdProcessor/Default.pm,
+	lib/Devel/Trepan/CmdProcessor/Help.pm,
+	lib/Devel/Trepan/CmdProcessor/Location.pm,
+	lib/Devel/Trepan/CmdProcessor/Msg.pm,
+	lib/Devel/Trepan/CmdProcessor/Validate.pm, lib/Devel/Trepan/DB.pm,
+	lib/Devel/Trepan/DB/LineCache.pm, t/20test-debug.t: Guard against
+	uninitialized variables and some AUTOLOAD deprecations. Some
+	DB::LineCache cleanup. All in preparation for dealing better with
+	SelfLoader and AutoLoader.
+
+2013-06-07  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/DB/LineCache.pm: Make sure the list returned by
+	DB::LineCache::file_lines is unique.
+
+2013-04-14  Rocky Bernstein <rocky@cpan.org>
+
+	* : commit 3525d8597d54f10f6c4578a6037e8367702b4348 Author: Rocky
+	Bernstein <rocky@cpan.org> Date:   Sun Apr 14 18:05:12 2013 -0400
+
+2013-04-14  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/DB/Breakpoint.pm: Add is_breakable()
+
+2013-04-14  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/Util.pm, t/10test-util.t: Strawberry Perl accepts
+	some expressions that other OS's find invalid.
+
+2013-03-30  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/DB/Sub.pm: Bump $deep based on discussion in RT
+	#117407
+
+2013-03-29  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/DB.pm, lib/Devel/Trepan/DB/Sub.pm: Up deep level.
+	Strip blanks
+
+2013-03-20  Rocky Bernstein <rocky@cpan.org>
+
+	*
+	lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Variables_Subcmd/
+	My.pm, lib/Devel/Trepan/IO/Input.pm,
+	lib/Devel/Trepan/Interface/User.pm: Hacky fixups: my completion.
+	Using Term::ReadLine::Perl5 until it is in Term::ReadLine.
+
+2013-02-05  Rocky Bernstein <rocky@cpan.org>
+
+	* ChangeLog, lib/Devel/Trepan/CmdProcessor/Command/Macro.pm: macro
+	pod text changes
+
+2013-02-04  Rocky Bernstein <rocky@cpan.org>
+
+	* MANIFEST,
+	lib/Devel/Trepan/CmdProcessor/Command/Info_Subcmd/Macros.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Macro.pm, t/20test-macro.t,
+	t/data/macro.cmd, t/data/macro.right: info macro: colorize sub if
+	highlight is on. Allow for info macro *. This puts this more inline
+	with other Trepan debuggers.
+
+2013-01-21  Rocky Bernstein <rocky@cpan.org>
+
+	* Build.PL, lib/Devel/Trepan/CmdProcessor/Command/Action.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Display.pm,
+	lib/Devel/Trepan/CmdProcessor/Command/Edit.pm: Build.PL: need
+	Time::HiRes for testing. Command/*.pm remove ${NAME} which doesn't
+	work with plain POD and remove here string interpolation.
+
+2013-01-15  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan/DB/Backtrace.pm, lib/Devel/Trepan/DB/Sub.pm: Sync
+	some of the lower level DB code with perl5db.pl 5.17
+
+2013-01-14  Rocky Bernstein <rocky@cpan.org>
+
+	* example/lsub.pl, lib/Devel/Trepan/DB/Backtrace.pm,
+	lib/Devel/Trepan/DB/Sub.pm, t/20test-lsub.t, t/data/lsub.cmd,
+	t/data/lsub.right: Perl bug #116358
+
+2013-01-14  Rocky Bernstein <rocky@cpan.org>
+
+	* lib/Devel/Trepan.pm, lib/Devel/Trepan/CmdProcessor/Frame.pm,
+	lib/Devel/Trepan/DB/Backtrace.pm, lib/Devel/Trepan/DB/Sub.pm,
+	lib/Devel/Trepan/Processor/Frame.pm, lib/Devel/Trepan/Version.pm: 
+	Start looking at 116358. For us it's a stack counting bug.
+
+2013-01-06  Rocky Bernstein <rocky@cpan.org>
+
+	* ChangeLog: Get ready for release 0.48. This time, for sure!
+
 2013-01-06  Rocky Bernstein <rocky@cpan.org>
 
 	* lib/Devel/Trepan/DB/Backtrace.pm, lib/Devel/Trepan/Options.pm: 
