@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011, 2012 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2013 Rocky Bernstein <rocky@cpan.org>
 use warnings;
 # FIXME: Can't use strict;
 
-use rlib '../..';
-
 package Devel::Trepan::Core;
 
-use Devel::Trepan::DB::Use;
+use rlib '.';
 use Devel::Trepan::DB;
+use Devel::Trepan::DB::Use;
 use Devel::Trepan::DB::LineCache;  # for remap_e_string_to_file();
 use Devel::Trepan::CmdProcessor;
 use Devel::Trepan::SigHandler;
@@ -17,11 +16,11 @@ use Devel::Trepan::IO::Output;
 use Devel::Trepan::Interface::Script;
 use Devel::Trepan::Interface::Server;
 use Devel::Trepan::Util;
+# print join(', ', @INC, "\n");
 
 use vars qw(@ISA $dbgr $HAVE_BULLWINKLE);
 
 BEGIN {
-    $ENV{'PERL_RL'} ||= 'perl';
     $HAVE_BULLWINKLE = eval("use Devel::Trepan::BWProcessor; 1") ? 1 : 0;
 }
 
@@ -88,7 +87,7 @@ sub signal_handler($$$)
     ) = @{$DB::caller};
     my $proc = $self->{proc};
     $self->{caught_signal} = 1;
-    $DB::signal = 2;
+    $DB::signal |= 2;
 }
 
 sub output($)

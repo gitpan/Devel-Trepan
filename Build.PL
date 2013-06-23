@@ -53,7 +53,7 @@ my $builder = Module::Build->new(
 
     },
     build_requires => {
-        # 'String::Diff'        => 0,
+        'rlib'                    => '0.02',
     },
     test_requires => {
         'Test::More'                        => '0.81',
@@ -67,7 +67,7 @@ my $builder = Module::Build->new(
         'Eval::WithLexicals'                => 0,
         'Pod::Text::Color'                  => 2.06,
         'Term::ReadKey'                     => 0,
-        'Term::ReadLine::Perl5'             => 1.08,
+        'Term::ReadLine::Perl5'             => 1.09,
     },
 
     requires => {
@@ -75,6 +75,7 @@ my $builder = Module::Build->new(
         'Array::Columnize'                  => '1.04',
         # 'Capture::Tiny'                     => 0,
         'Data::Dumper'                      => 0,
+	'File::HomeDir'                     => 0.54,
         'Getopt::Long'                      => '2.36',
         'Digest::SHA'                       => 0,
         'PadWalker'                         => 0,
