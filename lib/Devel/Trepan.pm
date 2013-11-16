@@ -1,18 +1,13 @@
 #!/usr/bin/env perl
-# Copyright (C) 2012-2013 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2013 Rocky Bernstein <rocky@cpan.org>
 # Documentation is at the __END__
 use strict; use warnings;
 
+use rlib '..';
+use Devel::Trepan::Version;
+use Devel::Trepan::Core;
+
 package Devel::Trepan;
-
-BEGIN {
-    my @OLD_INC = @INC;
-    use rlib '..';
-    use Devel::Trepan::Version;
-    use Devel::Trepan::Core;
-    @INC = @OLD_INC
-};
-
 
 use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $TREPAN_CMDPROC $PROGRAM);
 use Exporter;
@@ -23,7 +18,7 @@ use Exporter;
 
 use constant PROGRAM => 'trepan.pl';
 use version;
-$VERSION='0.50'; # To fool CPAN indexer. Is <= real version
+$VERSION='0.51'; # To fool CPAN indexer. Is <= real version
 $VERSION = $Devel::Trepan::Version::VERSION;
 $PROGRAM = PROGRAM;
 
@@ -1209,7 +1204,7 @@ L<Data::Dumper::Perltidy> allows one to Use I<Data::Dumper::Perltidy> to format 
 
 =item *
 
-L<Term::ReadLine::Perl> allows editing on the command line and command completion. This Module is preferred over L<Term::ReadLine::Gnu>.
+L<Term::ReadLine::Perl5> allows editing on the command line, command completion, and saving command history. This Module is preferred over L<Term::ReadLine::Perl> or L<Term::ReadLine::Gnu>.
 
 =item *
 

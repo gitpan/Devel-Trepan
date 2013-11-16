@@ -1,14 +1,14 @@
 #!/usr/bin/env perl
 #
-#   Copyright (C) 2011-2013 Rocky Bernstein <rockyb@cpan.org>
+#   Copyright (C) 2011-2013 Rocky Bernstein <rocky@cpan.org>
 #
 #
 use Digest::SHA;
 use Scalar::Util;
 
-use version; $VERSION = '0.2';
+use version; $VERSION = '0.3';
 
-package DB;
+package Devel::Trepan::DB::LineCache;
 
 # FIXME: Figure out where to put this
 # *pod
@@ -23,13 +23,14 @@ sub eval_ok ($)
     no strict; no warnings;
     $DB::namespace_package = 'package main' unless $DB::namespace_package;
     my $wrapped = "$DB::namespace_package; sub { $code }";
+    my %orig_sub = %DB::sub;
     eval $wrapped;
+    %DB::sub = %orig_sub;
     # print $@, "\n" if $@;
     return !$@;
 }
 
 use rlib '../../..';
-package Devel::Trepan::DB::LineCache;
 
 =pod
 
@@ -426,7 +427,7 @@ sub getline($$;$)
             # FIXME: should cache results
             my $sep = ($plain_lines eq $lines) ? '' : "\n";
             my $plain_line = $plain_lines->[$index];
-            while (--$max_continue && !DB::eval_ok($plain_line)) {
+            while (--$max_continue && !eval_ok($plain_line)) {
 		my $next_line = $lines->[++$index];
 		last unless $next_line;
                 $line .= ($sep . $next_line);

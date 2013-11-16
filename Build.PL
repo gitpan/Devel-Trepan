@@ -57,7 +57,7 @@ my $builder = Module::Build->new(
     },
     test_requires => {
         'Test::More'                        => '0.81',
-	'Time::HiRes'                       => '1.9725',
+	'Time::HiRes'                       => '1.9721',
         'rlib'                              => '0.02',
     },
     recommends => {
@@ -66,8 +66,7 @@ my $builder = Module::Build->new(
         'Devel::Callsite'                   => 0.06,
         'Eval::WithLexicals'                => 0,
         'Pod::Text::Color'                  => 2.06,
-        'Term::ReadKey'                     => 0,
-        'Term::ReadLine::Perl5'             => 1.09,
+        'Term::ReadLine::Perl5'             => 1.21,
     },
 
     requires => {

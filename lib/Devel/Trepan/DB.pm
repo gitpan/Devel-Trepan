@@ -303,6 +303,7 @@ sub DB {
         my $hits = $action->hits + 1;
         $action->hits($hits);
     }
+
     if ($DB::single || $DB::signal || $watch_triggered) {
         _warnall($#stack . " levels deep in subroutine calls.\n") if $DB::single & 4;
         $DB::single = 0;
@@ -372,6 +373,7 @@ sub DB {
             } until $running;
         }
     }
+
     $DB::event = undef;
     ($EVAL_ERROR, $ERRNO, $EXTENDED_OS_ERROR,
      $OUTPUT_FIELD_SEPARATOR,
@@ -827,9 +829,12 @@ Name of current executing subroutine.
 
 =item  %DB::sub
 
-The keys of this hash are the names of all the known subroutines.  Each value
-is an encoded string that has the sprintf(3) format
+The keys of this hash are the names of all the known subroutines.
+Each value is an encoded string that has the sprintf(3) format
 C<("%s:%d-%d", filename, fromline, toline)>.
+
+This hash is maintained by Perl.  I<filename> has the form (eval 34) for
+subroutines defined inside evals.
 
 =item  $DB::single
 
