@@ -6,10 +6,11 @@ use warnings; no warnings 'redefine';
 no warnings 'once';
 use English qw( -no_match_vars );
 
-use constant SINGLE_STEPPING_EVENT =>  1;
-use constant NEXT_STEPPING_EVENT   =>  2;
-use constant DEEP_RECURSION_EVENT  =>  4;
-use constant RETURN_EVENT          => 32;
+use constant SINGLE_STEPPING_EVENT =>   1;
+use constant NEXT_STEPPING_EVENT   =>   2;
+use constant DEEP_RECURSION_EVENT  =>   4;
+use constant RETURN_EVENT          =>  32;
+use constant CALL_EVENT            =>  64;
 
 use vars qw($return_value @return_value @stack %fn_brkpt);
 
@@ -41,7 +42,7 @@ sub subcall_debugger {
 	local $DB::event = 'call';
         $DB::single = 0;
         $DB::signal = 0;
-        $running = 0;
+        $DB::running = 0;
 
 	$DB::subroutine =  $sub;
 	my $entry = $DB::sub{$sub};
@@ -66,8 +67,9 @@ sub subcall_debugger {
                                 fix_file_and_line => 1,
                                 hide_position     => 0};
                     # FIXME: allow more than just scalar contexts.
+		    &DB::save_vars();
                     my $eval_result =
-                        &DB::eval_with_return($disp->arg, $opts, @saved);
+                        &DB::eval_with_return($disp->arg, $opts, @DB::saved);
 		    my $mess;
 		    if (defined($eval_result)) {
 			$mess = sprintf("%d: $eval_result", $disp->number);
@@ -96,13 +98,14 @@ sub subcall_debugger {
                     my $opts = $eval_opts;
                     $opts->{namespace_package} = $namespace_package;
 
+		    &DB::save_vars();
                     if ('@' eq $return_type) {
-                        &DB::eval_with_return($eval_str, $opts, @saved);
+                        &DB::eval_with_return($eval_str, $opts, @DB::saved);
                     } elsif ('%' eq $return_type) {
-                        &DB::eval_with_return($eval_str, $opts, @saved);
+                        &DB::eval_with_return($eval_str, $opts, @DB::saved);
                     } else {
                         $eval_result =
-                            &DB::eval_with_return($eval_str, $opts, @saved);
+                            &DB::eval_with_return($eval_str, $opts, @DB::saved);
                     }
 
                     if ($nest) {
@@ -118,7 +121,7 @@ sub subcall_debugger {
     }
 }
 
-sub check_breakpoints() {
+sub check_for_stop() {
     my $brkpts = $DB::fn_brkpt{$sub};
     if ($brkpts) {
 	my @action = ();
@@ -140,7 +143,8 @@ sub check_breakpoints() {
                             namespace_package => $namespace_package,
                             fix_file_and_line => 1,
                             hide_position     => 0};
-                &DB::eval_with_return($eval_str, $opts, @saved);
+		&DB::save_vars();
+                &DB::eval_with_return($eval_str, $opts, @DB::saved);
             }
             if ($stop && $brkpt->enabled && !($DB::single & RETURN_EVENT)) {
                 $DB::brkpt = $brkpt;
@@ -161,6 +165,25 @@ sub check_breakpoints() {
     }
 }
 
+# Push the $DB:single onto @DB::stack and set $DB_single.
+sub push_DB_single_and_set()
+{
+    # Expand @stack.
+    $#DB::stack = $DB::stack_depth;
+
+    # Save current single-step setting.
+    $DB::stack[-1] = $DB::single;
+
+    # printf "++ \$DB::single for $sub: 0%x\n", $DB::single if $DB::single;
+    # Turn off all flags except single-stepping or return event.
+    $DB::single &= SINGLE_STEPPING_EVENT;
+
+    # If we've gotten really deeply recursed, turn on the flag that will
+    # make us stop with the 'deep recursion' message.
+    $DB::single |= DEEP_RECURSION_EVENT if $#stack == $deep;
+}
+
+
 ####
 # entry point for all subroutine calls
 #
@@ -169,7 +192,7 @@ sub DB::sub {
     # memory See: [perl #66110]
 
     # lock ourselves under threads
-    lock($DBGR);
+    lock($DBGR) if $ENV{PERL5DB_THREADED};
 
     # Whether or not the autoloader was running, a scalar to put the
     # sub's return value in (if needed), and an array to put the sub's
@@ -191,22 +214,12 @@ sub DB::sub {
     # at once. Localizing the stack pointer means that it will automatically
     # unwind the same amount when multiple stack frames are unwound.
     local $stack_depth = $stack_depth + 1;    # Protect from non-local exits
+    push_DB_single_and_set();
 
-    # Expand @stack.
-    $#stack = $stack_depth;
-
-    # Save current single-step setting.
-    $stack[-1] = $DB::single;
-
-    ## printf "++ \$DB::single for $sub: 0%x\n", $DB::single if $DB::single;
-    # Turn off all flags except single-stepping or return event.
-    $DB::single &= SINGLE_STEPPING_EVENT;
-
-    # If we've gotten really deeply recursed, turn on the flag that will
-    # make us stop with the 'deep recursion' message.
-    $DB::single |= DEEP_RECURSION_EVENT if $#stack == $deep;
-
-    check_breakpoints();
+    if (defined($DB::running) && $DB::running == 1) {
+	local @DB::_ = @_;
+	check_for_stop();
+    }
 
     if ($DB::sub eq 'DESTROY' or
         substr($DB::sub, -9) eq '::DESTROY' or not defined wantarray) {
@@ -235,7 +248,10 @@ sub DB::sub {
         }
         @ret;
     } else {
-	# Scalar context.
+        # Called in array context. call sub and capture output.
+        # DB::DB will recursively get control again if appropriate;
+        # we'll come back here when the sub is finished.
+
         if ( defined wantarray ) {
             no strict 'refs';
 	    # call the original subroutine and save the array value.
@@ -263,11 +279,10 @@ sub DB::sub {
 }
 
 sub DB::lsub : lvalue {
-    no strict 'refs';
     # Possibly [perl #66110] also applies here as in sub.
 
     # lock ourselves under threads
-    lock($DBGR);
+    lock($DBGR) if $ENV{PERL5DB_THREADED};
 
     # Whether or not the autoloader was running, a scalar to put the
     # sub's return value in (if needed), and an array to put the sub's
@@ -288,28 +303,18 @@ sub DB::lsub : lvalue {
     # at once. Localizing the stack pointer means that it will automatically
     # unwind the same amount when multiple stack frames are unwound.
     local $stack_depth = $stack_depth + 1;    # Protect from non-local exits
+    push_DB_single_and_set();
 
-    # Expand @stack.
-    $#stack = $stack_depth;
-
-    # Save current single-step setting.
-    $stack[-1] = $DB::single;
-
-    # printf "++ \$DB::single for $sub: 0%x\n", $DB::single if $DB::single;
-    # Turn off all flags except single-stepping or return event.
-    $DB::single &= SINGLE_STEPPING_EVENT;
-
-    # If we've gotten really deeply recursed, turn on the flag that will
-    # make us stop with the 'deep recursion' message.
-    $DB::single |= DEEP_RECURSION_EVENT if $#stack == $deep;
-
-    check_breakpoints();
+    check_for_stop();
 
     if (wantarray) {
         # Called in array context. call sub and capture output.
         # DB::DB will recursively get control again if appropriate; we'll come
         # back here when the sub is finished.
-        @ret = &$sub;
+	{
+	    no strict 'refs';
+	    @ret = &$sub;
+	}
 
         # Pop the single-step value back off the stack.
         $DB::single |= $stack[ $stack_depth-- ];
@@ -321,10 +326,16 @@ sub DB::lsub : lvalue {
         }
         @ret;
     } else {
+        # Called in array context. call sub and capture output.
+        # DB::DB will recursively get control again if appropriate;
+        # we'll come back here when the sub is finished.
+
         if ( defined wantarray ) {
+            no strict 'refs';
             # Save the value if it's wanted at all.
             $ret = &$sub;
         } else {
+            no strict 'refs';
             # Void return, explicitly.
             &$sub;
             undef $ret;

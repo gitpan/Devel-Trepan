@@ -256,7 +256,7 @@ sub process_commands($$$;$)
 
     my $next_skip = 0;
     if ($event eq 'after_eval' or $event eq 'after_nest') {
-        handle_eval_result($self);
+        $self->handle_eval_result();
         if ($event eq 'after_nest') {
             $self->msg("Leaving nested debug level $DB::level");
             $self->{prompt} = compute_prompt($self);
@@ -322,6 +322,8 @@ sub process_commands($$$;$)
         }
     }
     unless ($next_skip) {
+	# Individual commands force a leave from by the below loop by
+	# setting leave_cmd_loop.
         $self->{leave_cmd_loop} = 0;
         while (!$self->{leave_cmd_loop}) {
             # begin
@@ -346,7 +348,7 @@ sub process_commands($$$;$)
         $self->{cmdloop_posthooks}->run;
         $self->{last_tid} = $DB::tid;
 	$DB::running = $self->{DB_running};
-        $DB::single       = $self->{DB_single};
+        $DB::single  = $self->{DB_single};
     }
 }
 
@@ -463,7 +465,7 @@ sub run_command($$)
             } else {
                 $DB::eval_result = $self->eval($current_command, $opts, 2);
             }
-            handle_eval_result($self);
+            $self->handle_eval_result();
         }
         return;
     }

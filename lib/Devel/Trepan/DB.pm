@@ -37,7 +37,7 @@ use Devel::Trepan::DB::Sub;
 use Devel::Trepan::Terminated;
 
 # "private" globals
-my (@saved, @skippkg);
+my (@skippkg);
 
 my $ineval = {};
 
@@ -108,11 +108,11 @@ BEGIN {
 
     # initialize private globals to avoid warnings
 
-    $running = 1;         # are we running, or are we stopped?
+    $DB::running = 1;         # are we running, or are we stopped?
     $in_debugger = 0;
     @clients = ();
     $ready = 0;
-    @saved = ();
+    @DB::saved = ();
     @skippkg = ();
 
     # ensure we can share our non-threaded variables or no-op
@@ -157,15 +157,19 @@ END {
 sub save_vars();
 
 ####
-# this is called by Perl for every statement
+# This is called by Perl for every statement
+#
+# IMPORTANT NOTE: We allow DB:DB() to get called recursively and due
+# to Perl bug RT #115742 and advisement from Ben Morrow, we shouldn't
+# use lexical variables on versions of Perl before 5.18.0.
 #
 sub DB {
 
     # print "+++ in DB single: ${DB::single}\n";
-    # lock the debugger and get the thread id for the prompt
-    lock($DBGR);
 
+    # lock the debugger and get the thread id for the prompt
     if ($ENV{PERL5DB_THREADED}) {
+	lock($DBGR);
         $tid = eval { "[".threads->tid."]" };
     }
 
@@ -178,7 +182,7 @@ sub DB {
     # figure out where we last were executing. Sneaky, eh? This works because
     # caller is returning all the extra information when called from the
     # debugger.
-    $DB::caller = [caller];
+    $DB::caller = [CORE::caller];
     ($DB::package, $DB::filename, $DB::lineno, $DB::subroutine, $DB::hasargs,
      $DB::wantarray, $DB::evaltext, $DB::is_require, $DB::hints, $DB::bitmask,
      $DB::hinthash
@@ -211,21 +215,22 @@ sub DB {
     local $DB::level = $DB::level + 1;
 
     # Test watch expressions;
-    my $watch_triggered = undef;
-    for my $c (@clients) {
-        my $n = 0;
-        my @list= @{$c->{watch}->{list}};
-        for my $wp (@list) {
+    local $watch_triggered = undef;
+    local $c;
+    for $c (@clients) {
+        local @list= @{$c->{watch}->{list}};
+	local $wp;
+        for $wp (@list) {
             next unless $wp->enabled;
-            my $opts = {return_type => '$',
+            local $opts = {return_type => '$',
                         namespace_package => $namespace_package,
                         fix_file_and_line => 1,
                         hide_position     => 0};
-            my $new_val = &DB::eval_with_return($wp->expr, $opts, @saved);
-            my $old_val = $wp->old_value;
+            local $new_val = &DB::eval_with_return($wp->expr, $opts, @DB::saved);
+            local $old_val = $wp->old_value;
             no warnings 'once';
             next if !defined($old_value) and !defined($new_val);
-            my $not_same = !defined($old_val) || !defined($new_val);
+            local $not_same = !defined($old_val) || !defined($new_val);
             if ( $not_same || $new_val ne $wp->old_value ) {
                 # Yep! Record change.
                 $wp->current_val($new_val);
@@ -237,11 +242,11 @@ sub DB {
     }
 
     # Test for breakpoints and action events.
-    my @action = ();
+    local @action = ();
     if (exists $DB::dbline{$DB::lineno} and
-        my $brkpts = $DB::dbline{$DB::lineno}) {
-        for (my $i=0; $i < @$brkpts; $i++) {
-            my $brkpt = $brkpts->[$i];
+        local $brkpts = $DB::dbline{$DB::lineno}) {
+        for (local $i=0; $i < @$brkpts; $i++) {
+            local $brkpt = $brkpts->[$i];
             next unless defined $brkpt;
             if ($brkpt->type eq 'action') {
                 push @action, $brkpt;
@@ -258,7 +263,7 @@ sub DB {
                             namespace_package => $namespace_package,
                             fix_file_and_line => 1,
                             hide_position     => 0};
-                &DB::eval_with_return($eval_str, $opts, @saved);
+                &DB::eval_with_return($eval_str, $opts, @DB::saved);
             }
             if ($stop && $brkpt->enabled && !($DB::single & RETURN_EVENT)) {
                 $DB::signal |= 1;
@@ -296,9 +301,10 @@ sub DB {
         loadfile($DB::filename, $DB::lineno);
     }
 
-    for my $action (@action) {
+    local $action;
+    for $action (@action) {
         &DB::eval_with_return($action->condition, {return_type => '$'},
-			      @saved)
+			      @DB::saved)
             if $action->enabled;
         my $hits = $action->hits + 1;
         $action->hits($hits);
@@ -308,24 +314,26 @@ sub DB {
         _warnall($#stack . " levels deep in subroutine calls.\n") if $DB::single & 4;
         $DB::single = 0;
         $DB::signal = 0;
-        $running = 0;
+        $DB::running = 0;
 
-        for my $c (@clients) {
+	local $c;
+        for $c (@clients) {
             # Now sit in an event loop until something sets $running
-            my $after_eval = 0;
+            local $after_eval = 0;
             do {
                 # Show display expresions
-                my $display_aref = $c->display_lists;
-                for my $disp (@$display_aref) {
+                local $display_aref = $c->display_lists;
+		local $disp;
+                for $disp (@$display_aref) {
                     next unless $disp && $disp->enabled;
-                    my $opts = {return_type => $disp->return_type,
+                    local $opts = {return_type => $disp->return_type,
                                 namespace_package => $namespace_package,
                                 fix_file_and_line => 1,
                                 hide_position     => 0};
                     # FIXME: allow more than just scalar contexts.
-                    my $eval_result =
-                        &DB::eval_with_return($disp->arg, $opts, @saved);
-		    my $mess;
+                    local $eval_result =
+                        &DB::eval_with_return($disp->arg, $opts, @DB::saved);
+		    local $mess;
 		    if (defined($eval_result)) {
 			$mess = sprintf("%d: $eval_result", $disp->number);
 		    } else {
@@ -354,12 +362,12 @@ sub DB {
                     $opts->{namespace_package} = $namespace_package;
 
                     if ('@' eq $return_type) {
-                        &DB::eval_with_return($eval_str, $opts, @saved);
+                        &DB::eval_with_return($eval_str, $opts, @DB::saved);
                     } elsif ('%' eq $return_type) {
-                        &DB::eval_with_return($eval_str, $opts, @saved);
+                        &DB::eval_with_return($eval_str, $opts, @DB::saved);
                     } else {
                         $eval_result =
-                            &DB::eval_with_return($eval_str, $opts, @saved);
+                            &DB::eval_with_return($eval_str, $opts, @DB::saved);
                     }
 
                     if ($nest) {
@@ -368,7 +376,7 @@ sub DB {
                     } else {
                         $after_eval = 1;
                     }
-                    $running = 0;
+                    $DB::running = 0;
                 }
             } until $running;
         }
@@ -378,7 +386,7 @@ sub DB {
     ($EVAL_ERROR, $ERRNO, $EXTENDED_OS_ERROR,
      $OUTPUT_FIELD_SEPARATOR,
      $INPUT_RECORD_SEPARATOR,
-     $OUTPUT_RECORD_SEPARATOR, $WARNING) = @saved;
+     $OUTPUT_RECORD_SEPARATOR, $WARNING) = @DB::saved;
     ();
 }
 
@@ -447,7 +455,7 @@ sub save { die "Remember to update Enbugger/trepan.pm" };
 # reduce prototype conflict of save $ vs none if we use perl5db.pl to
 # debug Devel::Trepan.
 sub save_vars() {
-  @saved = ( $EVAL_ERROR, $ERRNO, $EXTENDED_OS_ERROR,
+  @DB::saved = ( $EVAL_ERROR, $ERRNO, $EXTENDED_OS_ERROR,
              $OUTPUT_FIELD_SEPARATOR,
              $INPUT_RECORD_SEPARATOR,
              $OUTPUT_RECORD_SEPARATOR, $WARNING );
@@ -460,7 +468,7 @@ sub save_vars() {
 
 sub catch {
     @DB::_ = @_;
-    $DB::caller = [caller];
+    $DB::caller = [CORE::caller];
     ($DB::package, $DB::filename, $DB::lineno, $DB::subroutine, $DB::hasargs,
      $DB::wantarray, $DB::evaltext, $DB::is_require, $DB::hints, $DB::bitmask,
      $DB::hinthash
@@ -486,7 +494,7 @@ sub catch {
                     fix_file_and_line => 1,
                     hide_position     => 0};
                 my $eval_result = &DB::eval_with_return($disp->arg, $opts,
-                                                        @saved);
+                                                        @DB::saved);
                 my $mess = sprintf("%d: $eval_result", $disp->number);
                 $c->output($mess);
             }
@@ -508,12 +516,12 @@ sub catch {
                 $opts->{namespace_package} = $namespace_package;
 
                 if ('@' eq $opts->{return_type}) {
-                    &DB::eval_with_return($eval_str, $opts, @saved);
+                    &DB::eval_with_return($eval_str, $opts, @DB::saved);
                 } elsif ('%' eq $opts->{return_type}) {
-                        &DB::eval_with_return($eval_str, $opts, @saved);
+                        &DB::eval_with_return($eval_str, $opts, @DB::saved);
                 } else {
                     $eval_result =
-                        &DB::eval_with_return($eval_str, $opts, @saved);
+                        &DB::eval_with_return($eval_str, $opts, @DB::saved);
                 }
 
                 $after_eval = 1;
@@ -594,7 +602,11 @@ sub finish($;$$) {
 
     if ($scan_for_DB_sub) {
         my $i = 0;
-        while (my ($pkg, $file, $line, $fn) = caller($i++)) {
+        while (my ($pkg, $file, $line, $fn) = CORE::caller($i++)) {
+	    # Note: The function parameter of caller(), $fn, gives the
+	    # function that was used rather than the function that the
+	    # caller is currently in. Therefore, the implicitly line
+	    # calling DB:DB is the one we want to stop at.
             if ('DB::DB' eq $fn or ('DB' eq $pkg && 'DB' eq $fn)) {
                 # FIXME: This is hoaky. 4 is somehow how far off
                 # @stack is from caller.

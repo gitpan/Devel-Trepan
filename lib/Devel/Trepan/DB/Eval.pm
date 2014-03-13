@@ -21,6 +21,39 @@ BEGIN {
     %DB::eval_result = ();      # place for result if hash
 }
 
+# Like builtin caller but we strip off DB:: routines which are presumably
+# are calls from inside inside the debugger (package DB).
+# NOTE: we assume the original builtin caller has been saved inside
+# local-declared *orig_caller. See below in eval_with_return.
+
+# no critic
+
+# Provide a replacement for built-in CORE::caller
+sub caller_sans_DB(;$) {
+    my $levels = shift;
+    $levels = 0 unless defined($levels);
+    my $skip=0;
+    my $db_fn = ($DB::event eq 'post-mortem') ? 'catch' : 'DB';
+
+    while (my ($pkg, $file, $line, $fn) = caller($skip++)) {
+	# Note: The function parameter of caller(), $fn, gives the
+	# function that was used rather than the function that the
+	# caller is currently in. Therefore, the implicitly line
+	# calling DB:DB is the one we want to stop at.
+	if ("DB::$db_fn" eq $fn or ('DB' eq $pkg && $db_fn eq $fn)) {
+	    ## print("XXX $skip\n");
+	    $skip--;
+	    last ;
+	}
+    }
+    my @caller = CORE::caller($skip+$levels);
+
+    return if ! @caller;                  # empty
+    return $caller[0] if ! wantarray;     # scalar context
+    return @caller[0..2];                 # outside of DB, array info just gives 3 itmes
+
+}
+
 # evaluate $eval_str in the context of $package_namespace (a package name).
 # @saved contains an ordered list of saved global variables.
 # $return_type indicates the return context:
@@ -50,7 +83,7 @@ sub eval_with_return {
         # Set package namespace for running eval's in the namespace
         # of the debugged program.
         my $eval_setup = $opts->{namespace_package} || $DB::namespace_package;
-        $eval_setup   .= "\n\@_ = \@DB::_;";
+        $eval_setup   .= ";\n\@_ = \@DB::_;";
 
         # Make sure __FILE__ and __LINE__ are set correctly
         if( $opts->{fix_file_and_line}) {
@@ -59,9 +92,22 @@ sub eval_with_return {
         }
 
         my $return_type = $opts->{return_type};
+
+	# Override caller inside the eval below. Many thanks to Toby
+        # Inkster and educated_foo via
+        # http://www.perlmonks.org/?node_id=1065502
+
+	local *CORE::GLOBAL::caller = \&caller_sans_DB;
+
+	# Note: our code shouldn't use caller for itself below (or if
+	# it is needed use it by the name CORE::caller, since we've
+	# overwritten it above.
+
         if ('$' eq $return_type) {
+            # print "+++ eval $return: $eval_setup \$DB::eval_result=$eval_str\n";
             eval "$eval_setup \$DB::eval_result=$eval_str\n";
         } elsif ('@' eq $return_type) {
+            # print "+++ eval @return: $eval_setup \@DB::eval_result=$eval_str\n";
             eval "$eval_setup \@DB::eval_result=$eval_str\n";
         } elsif ('%' eq $return_type) {
             eval "$eval_setup \%DB::eval_result=$eval_str\n";
@@ -73,6 +119,7 @@ sub eval_with_return {
         #     $eval_result = capture_merged {
         #       eval "$eval_setup $eval_str\n";
         } else {
+            # print "+++ eval $eval_setup $eval_str\n";
             $eval_result = eval "$eval_setup $eval_str\n";
         };
 
@@ -120,7 +167,7 @@ sub eval_not_ok ($)
     }
 }
 
-unless (caller) {
+unless (CORE::caller) {
     eval {
         sub doit($) {
             my $code = shift;

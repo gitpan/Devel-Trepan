@@ -13,6 +13,7 @@ README.md			README in Markdown format for github
 bin/trepan.pl
 example/TCPPack.pm
 example/action-bug.pl
+example/callbug.pl
 example/eval.pl
 example/except-bug1.pl
 example/fns.pl
@@ -176,6 +177,7 @@ lib/Devel/Trepan/DB/Display.pm
 lib/Devel/Trepan/DB/Eval.pm
 lib/Devel/Trepan/DB/LineCache.pm
 lib/Devel/Trepan/DB/SelfLoader.pm
+lib/Devel/Trepan/DB/Sig.pm
 lib/Devel/Trepan/DB/Sub.pm
 lib/Devel/Trepan/DB/Use.pm
 lib/Devel/Trepan/IO.pm
@@ -206,6 +208,8 @@ lib/Devel/Trepan/Version.pm
 lib/Devel/Trepan/WatchMgr.pm
 t/00test-pod.t
 t/10test-brkptmgr.t		Note: t/10*.t tests are unit tests
+t/10test-cmd.t
+t/10test-cmd-break.t
 t/10test-cmd-complete.t
 t/10test-cmd-kill.t
 t/10test-cmd-macro.t
@@ -230,6 +234,7 @@ t/10test-proc-default.t
 t/10test-proc-hook.t
 t/10test-proc-load.t
 t/10test-sighandler.t
+t/10test-subcmd.t
 t/10test-util.t
 t/10test-validate.t
 t/10test-watchmgr.t
@@ -239,6 +244,7 @@ t/20test-alias.t
 t/20test-autoeval.t
 t/20test-autolist.t
 t/20test-break.t
+t/20test-breakcall.t
 t/20test-cont.t
 t/20test-debug.t
 t/20test-display.t
@@ -278,6 +284,8 @@ t/data/break.cmd
 t/data/break.right
 t/data/break2.cmd
 t/data/break2.right
+t/data/breakcall.cmd
+t/data/breakcall.right
 t/data/cont.cmd
 t/data/cont.right
 t/data/debug.cmd
@@ -290,6 +298,8 @@ t/data/eval.cmd
 t/data/eval.right
 t/data/eval2.cmd
 t/data/eval2.right
+t/data/eval3.cmd
+t/data/eval3.right
 t/data/fin.cmd
 t/data/fin.right
 t/data/fin2.cmd
