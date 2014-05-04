@@ -13,6 +13,13 @@
       "version" : "2"
    },
    "name" : "Devel-Trepan",
+   "no_index" : {
+      "package" : [
+         "SelfLoader",
+         "DB",
+         "Carp"
+      ]
+   },
    "prereqs" : {
       "build" : {
          "requires" : {
@@ -66,7 +73,7 @@
       },
       "Devel::Trepan" : {
          "file" : "lib/Devel/Trepan.pm",
-         "version" : "0.53"
+         "version" : "0.54"
       },
       "Devel::Trepan::BrkptMgr" : {
          "file" : "lib/Devel/Trepan/BrkptMgr.pm",
@@ -678,10 +685,14 @@
       },
       "Devel::Trepan::Options" : {
          "file" : "lib/Devel/Trepan/Options.pm",
-         "version" : 0
+         "version" : "0.53"
       },
       "Devel::Trepan::Pod2Text" : {
          "file" : "lib/Devel/Trepan/Pod2Text.pm",
+         "version" : 0
+      },
+      "Devel::Trepan::Position" : {
+         "file" : "lib/Devel/Trepan/Position.pm",
          "version" : 0
       },
       "Devel::Trepan::Processor" : {
@@ -706,7 +717,7 @@
       },
       "Devel::Trepan::Version" : {
          "file" : "lib/Devel/Trepan/Version.pm",
-         "version" : "0.53"
+         "version" : "0.54"
       },
       "Devel::Trepan::WatchMgr" : {
          "file" : "lib/Devel/Trepan/WatchMgr.pm",
@@ -715,10 +726,6 @@
       "SelfLoader" : {
          "file" : "lib/Devel/Trepan/DB/SelfLoader.pm",
          "version" : "1.20"
-      },
-      "TrepanPosition" : {
-         "file" : "lib/Devel/Trepan/Position.pm",
-         "version" : 0
       },
       "WatchPoint" : {
          "file" : "lib/Devel/Trepan/WatchMgr.pm",
@@ -737,7 +744,7 @@
          "url" : "http://github.com/rocky/Perl-Devel-Trepan"
       }
    },
-   "version" : "0.53",
+   "version" : "0.54",
    "x_test_requires" : {
       "Test::More" : "0.81",
       "Time::HiRes" : "1.9721",

@@ -1,10 +1,10 @@
-# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012, 2014 Rocky Bernstein <rocky@cpan.org>
 # -*- coding: utf-8 -*-
 
 use rlib '../../../..';
 
 package Devel::Trepan::CmdProcessor::Command::Help;
-use warnings; no warnings 'redefine';
+use warnings; no warnings 'redefine'; use utf8;
 
 use Devel::Trepan::Pod2Text qw(pod2string help2podstring);
 use Devel::Trepan::Complete qw(complete_token);
@@ -31,21 +31,22 @@ our $NAME = set_name();
 our $HELP = <<'HELP';
 =pod
 
-help [I<command> [I<subcommand>]|I<expression>]
+B<help> [I<command> [I<subcommand>]|I<expression>]
 
-Without argument, print the list of available debugger commands.
-
+Without argument, print the list of available debugger commands.  a
 When an argument is given, it is first checked to see if it is command
-name. C<help backtrace> gives help on the C<backtrace> debugger command.
+name. For example, C<help backtrace> gives help on the
+L<C<backtrace>|Devel::Trepan::CmdProcessor::Command::Backtrace>
+debugger command.
 
-If the environment variable I<$PAGER> is defined, the file is
-piped through that command.  You will notice this only for long help
-output.
-
-Some commands like C<info>, C<set>, and C<show> can accept an
+Some commands like
+L<C<info>|Devel::Trepan::CmdProcessor::Command::Info>,
+L<C<set>|Devel::Trepan::CmdProcessor::Command::Set>, and
+L<C<show>|Devel::Trepan::CmdProcessor::Command::Show> can accept an
 additional subcommand to give help just about that particular
-subcommand. For example C<help info line> gives help about the
-C<info line> command.
+subcommand. For example C<help info line> gives help about the C<info
+line> command.
+
 =cut
 HELP
 
@@ -200,7 +201,9 @@ sub show_command_syntax($$)
             unless($self->{syntax_summary_help}{$name}) {
                 my $filename = File::Spec->catfile($HELP_DIR, "${name}.pod");
                 my @lines = $self->readlines($filename);
-                $self->{syntax_summary_help}{$name} = $lines[0];
+		my $summary_help = $lines[0];
+		$summary_help =~ s/^#\s*//;
+                $self->{syntax_summary_help}{$name} = $summary_help;
             }
             my $msg = sprintf("  %-8s -- %s", $name,
                               $self->{syntax_summary_help}{$name});
