@@ -1,20 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2011-2014 Rocky Bernstein <rocky@cpan.org>
 
-use warnings; no warnings 'redefine';
+use warnings; use utf8;
 
 package Devel::Trepan::CmdProcessor::Command::SubcmdMgr;
-
-# Because we use Exporter we want to silence:
-#   Use of inherited AUTOLOAD for non-method ... is deprecated
-sub AUTOLOAD
-{
-    my $name = our $AUTOLOAD;
-    $name =~ s/.*:://;  # lose package name
-    my $target = "DynaLoader::$name";
-    goto &$target;
-}
-
 
 use File::Basename;
 use File::Spec;
@@ -27,15 +16,32 @@ use vars @CMD_VARS;  # Value inherited from parent
 
 #  include Trepan::Help
 
-use constant MIN_ARGS => 0;
-use constant MAX_ARGS => undef;
+unless (@ISA) {
+    eval <<"EOE";
+    use constant MIN_ARGS => 0;
+    use constant MAX_ARGS => undef;
+    use constant NEED_STACK => 0;
+EOE
+}
+
 $NAME          = '?'; # FIXME: Need to define this, but should
                       # pick this up from class/file name.
-use constant NEED_STACK => 0;
 
 #   attr_accessor :subcmds   # Trepan::Subcmd
 #   attr_reader   :name      # Name of command
 #   attr_reader   :last_args # Last arguments seen
+
+no warnings 'redefine';
+
+# Because we use Exporter we want to silence:
+#   Use of inherited AUTOLOAD for non-method ... is deprecated
+sub AUTOLOAD
+{
+    my $name = our $AUTOLOAD;
+    $name =~ s/.*:://;  # lose package name
+    my $target = "DynaLoader::$name";
+    goto &$target;
+}
 
 # Initialize show subcommands. Note: instance variable name
 # has to be setcmds ('set' + 'cmds') for subcommand completion
@@ -79,6 +85,32 @@ sub new($$)
     $self;
 }
 
+sub load_debugger_subcommand($$)
+{
+    my ($self, $parent_name, $pm) = @_;
+
+    return unless -r $pm;
+    my $rc = '';
+    eval { $rc = do $pm; };
+    return if !$rc or $rc eq 'Skip me!';
+
+    my $basename = basename($pm, '.pm');
+    my $item = sprintf("%s::%s", ucfirst($parent_name), ucfirst($basename));
+    if (-d File::Spec->catfile(dirname($pm), $basename . '_Subcmd')) {
+	push @{$self->{subcmd_names}}, $item;
+    } else {
+	push @{$self->{cmd_names}}, $item;
+	push @{$self->{cmd_basenames}}, $basename;
+    }
+    if (eval "require '$pm'; 1") {
+	return $self->setup_subcommand($parent_name, $basename);
+    } else {
+	$self->errmsg("Trouble reading ${pm}:");
+	$self->errmsg($@);
+	return 0;
+    }
+}
+
 # Create an instance of each of the debugger subcommands. Commands are
 # found by importing files in the directory 'name' + '_Subcmd'. Some
 # files are excluded via an array set in initialize.  For each of the
@@ -99,20 +131,7 @@ sub load_debugger_subcommands($)
     if (-d $subcmd_dir) {
         my @files = glob(File::Spec->catfile($subcmd_dir, '*.pm'));
         for my $pm (@files) {
-            my $basename = basename($pm, '.pm');
-            my $item = sprintf("%s::%s", ucfirst($parent_name), ucfirst($basename));
-            if (-d File::Spec->catfile(dirname($pm), $basename . '_Subcmd')) {
-                push @{$self->{subcmd_names}}, $item;
-            } else {
-                push @{$self->{cmd_names}}, $item;
-                push @{$self->{cmd_basenames}}, $basename;
-            }
-            if (eval "require '$pm'; 1") {
-                $self->setup_subcommand($parent_name, $basename);
-            } else {
-                $self->errmsg("Trouble reading ${pm}:");
-                $self->errmsg($@);
-            }
+	    $self->load_debugger_subcommand($parent_name, $pm);
         }
     }
 }
@@ -128,9 +147,11 @@ sub setup_subcommand($$$$)
         # Add to hash of commands, and list of subcmds
         $self->{subcmds}->{$cmd_name} = $cmd_obj;
         $self->add($cmd_obj, $cmd_name);
+	return 1;
     } else {
         $self->errmsg("Error instantiating ${parent_name}::$name");
         $self->errmsg($@);
+	return 0;
     }
 
 }
@@ -294,10 +315,11 @@ unless(caller) {
     # Demo it.
     require Devel::Trepan::CmdProcessor;
     my $cmdproc = Devel::Trepan::CmdProcessor->new(undef, 'bogus');
-    my $mgr = __PACKAGE__->new($cmdproc);
-    print $mgr, "\n";
-    print "subcmds: ", join(', ', keys %{$mgr->{subcmds}}), "\n";
-    # print cmd.subcmds.lookup('a'), "\n";
+    require Devel::Trepan::CmdProcessor::Command::Set;
+    my $mgr = Devel::Trepan::CmdProcessor::Command::Set->new($cmdproc, 'set');
+    printf "name: %s, cmd_str: %s\n", $mgr->{name}, $mgr->{cmd_str};
+    print "subcmds: ", join(', ', $mgr->list), "\n";
+    print $mgr->lookup('abbrev'), "\n";
 }
 
 1;

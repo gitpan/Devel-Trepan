@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# Copyright (C) 2013 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2013-2014 Rocky Bernstein <rocky@cpan.org>
 # Documentation is at the __END__
 use strict; use warnings;
 
@@ -18,7 +18,7 @@ use Exporter;
 
 use constant PROGRAM => 'trepan.pl';
 use version;
-$VERSION='0.52'; # To fool CPAN indexer. Is <= real version
+$VERSION='0.53'; # To fool CPAN indexer. Is <= real version
 $VERSION = $Devel::Trepan::Version::VERSION;
 $PROGRAM = PROGRAM;
 
@@ -229,154 +229,33 @@ breakpoints is in L</Making the program stop at certain points>.
 
 =item *
 
-L</"Step into (step)">
+L<Step into (step)|Devel::Trepan::CmdProcessor::Command::Step>
 
 =item *
 
-L</"Step over (next)">
+L<Step over (next)|Devel::Trepan::CmdProcessor::Command::Next>
 
 =item *
 
-L<"Continue execution (continue)">
+L<Continue execution (continue)|Devel::Trepan::CmdProcessor::Command::Continue>
 
 =item *
 
-L</"Step out (finish)">
+L<Step out (finish)|Devel::Trepan::CmdProcessor::Command::Finish>
 
 =item *
 
-L</"Gently exit debugged program (quit)">
+L<Gently exit debugged program (quit)|Devel::Trepan::CmdProcessor::Command::Quit>
 
 =item *
 
-L</"Hard termination (kill)">
+L<Hard termination (kill)|Devel::Trepan::CmdProcessor::Command::Kill>
 
 =item *
 
-L</"Restart execution (restart)">
+L<Restart execution (run)|Devel::Trepan::CmdProcessor::Command::Run>
 
 =back
-
-=head4 Step into (step)
-
-B<step>[<B<+>|B<->] [B<into>] [I<count>]
-
-Execute the current line, stopping at the next event.  Sometimes this
-is called "step into".
-
-With an integer argument, step that many times.  With an 'until'
-expression that expression is evaluated and we stop the first time it
-is true.
-
-A suffix of C<+> in a command or an alias forces a move to another
-position, while a suffix of C<-> disables this requirement.  A suffix
-of C<E<gt>> will continue until the next call. (C<finish> will run run until
-the return for that call.)
-
-If no suffix is given, the debugger setting C<different> determines
-this behavior.
-
-I<Examples:>
-
-    step        # step 1 event, *any* event obeying 'set different' setting
-    step 1      # same as above
-    step+       # same but force stopping on a new line
-    step over   # same as 'next'
-    step out    # same as 'finish'
-
-Related and similar is the C<next> (step over) and C<finish> (step out)
-commands.  All of these are slower than running to a breakpoint.
-
-=head4 Step over (next)
-
-B<next>
-
-Step one statement ignoring steps into function calls at this level.
-Sometimes this is called "step over".
-
-=head4 Continue execution (continue)
-
-B<continue> [I<location>]
-
-Leave the debugger loop and continue execution. Subsequent entry to
-the debugger however may occur via breakpoints or explicit calls, or
-exceptions.
-
-If a parameter is given, a temporary breakpoint is set at that position
-before continuing.
-
-I<Examples:>
-
- continue
- continue 10    # continue to line 10
- continue gcd   # continue to first instruction of method gcd
-
-See also L<C<step>|Devel::Trepan::CmdProcessor::Command::Step>,
-L<C<next>|Devel::Trepan::CmdProcessor::Command::Next>,
-L<C<finish>|Devel::Trepan::CmdProcessor::Command::Finis> commands and
-C<help location>.
-
-=head4 Step out (finish)
-
-B<finish>
-
-Continue execution until the program is about to leave the current
-function. Sometimes this is called 'step out'.
-
-=head4 Gently exit debugged program (quit)
-
-B<quit>[B<!>] [B<unconditionally>] [I<exit-code>]
-
-Gently exit the debugger and debugged program.
-
-The program being debugged is exited via I<exit()> which runs the
-Kernel I<at_exit()> finalizers. If a return code is given, that is the
-return code passed to I<exit()> - presumably the return code that will
-be passed back to the OS. If no exit code is given, 0 is used.
-
-B<Examples:>
-
- quit                 # quit prompting if we are interactive
- quit unconditionally # quit without prompting
- quit!                # same as above
- quit 0               # same as "quit"
- quit! 1              # unconditional quit setting exit code 1
-
-See also C<set confirm> and
-L<C<kill>|Devel::Trepan::CmdProcessor::Command::Kill>.
-
-=head4 Hard termination (kill)
-
-B<kill>[B<!>] [I<signal-number>|I<signal-name>]
-
-Kill execution of program being debugged.
-
-Equivalent of C<kill('KILL', $$)>. This is an unmaskable
-signal. Use this when all else fails, e.g. in thread code, use this.
-
-If you are in interactive mode, you are prompted to confirm killing.
-However when this command is aliased from a command ending in C<!>, no
-questions are asked.
-
-I<Examples:>
-
- kill
- kill KILL # same as above
- kill -9   # same as above
- kill  9   # same as above
- kill! 9   # same as above, but no questions asked
- kill unconditionally # same as above
- kill TERM # Send "TERM" signal
-
-See also C<quit>
-
-=head4 Restart execution (restart)
-
-B<restart>
-
-Restart debugger and program via an exec call.
-
-See also C<show args> for the exact invocation that will be used.
 
 =head3 Examining data
 
@@ -384,61 +263,13 @@ See also C<show args> for the exact invocation that will be used.
 
 =item *
 
-L</"Evaluate Perl code (eval)">
+L<Evaluate Perl code (eval)|Devel::Trepan::CmdProcessor::Command::Eval>
 
 =item *
 
-L</"Recursively Debug into Perl code">
+L<Recursively Debug into Perl code (debug)|Devel::Trepan::CmdProcessor::Command::Debug>
 
 =back
-
-=head4 Evaluate Perl code (eval)
-
-B<eval>[B<@$>][B<?>] [I<Perl-code>]
-
-Run I<Perl-code> in the context of the current frame.
-
-If no string is given after the word "eval", we run the string from
-the current source code about to be run. If the "eval" command ends ?
-(via an alias) and no string is given we try to pick out a useful
-expression in the line.
-
-Normally eval assumes you are typing a statement, not an expression;
-the result is a scalar value. However you can force the type of the result
-by adding the appropriate sigil C<@>, or C<$>.
-
-I<Examples:>
-
-    eval 1+2 # 3
-    eval$ 3   # Same as above, but the return type is explicit
-    $ 3       # Probably same as above if $ alias is around
-    eval $^X  # Possibly /usr/bin/perl
-    eval      # Run current source-code line
-    eval?     # but strips off leading 'if', 'while', ..
-              # from command
-    eval @ARGV  # Make sure the result saved is an array rather than
-                # an array converted to a scalar.
-    @ @ARG       # Same as above if @ alias is around
-    use English  # Note this is a statement, not an expression
-    use English; # Same as above
-    eval$ use English # Error because this is not a valid expression
-
-See also C<set auto eval> to treat unrecognized debugger commands as
-Perl code.
-
-=head4 Recursively Debug into Perl code (debug)
-
-B<debug> I<Perl-code>
-
-Recursively debug I<Perl-code>.
-
-The level of recursive debugging is shown in the prompt. For example
-C<((trepan.pl))> indicates one nested level of debugging.
-
-I<Examples:>
-
- debug finonacci(5)   # Debug fibonacci function
- debug $x=1; $y=2;    # Kind of pointless, but doable.
 
 =head3 Making the program stop at certain points
 
@@ -458,163 +289,37 @@ variable's value.
 
 =item *
 
-L</"Set a breakpoint (break)">
+L<Set a breakpoint (break)|Devel::Trepan::CmdProcessor::Command::Break>
 
 =item *
 
-L</"Set a temporary breakpoint (tbreak)">
+L<Set a temporary breakpoint (tbreak)|Devel::Trepan::CmdProcessor::Command::TBreak>
 
 =item *
 
-L</"Add or modify a condition on a breakpoint (condition)">
+L<Add or modify a condition on a breakpoint (condition)|Devel::Trepan::CmdProcessor::Command::Condition>
 
 =item *
 
-L</"Delete some breakpoints (delete)">
+L<Delete some breakpoints (delete)|Devel::Trepan::CmdProcessor::Command::Delete>
 
 =item *
 
-L</"Enable some breakpoints (enable)">
+L<Enable some breakpoints (enable)|Devel::Trepan::CmdProcessor::Command::Enable>
 
 =item *
 
-L</"Disable some breakpoints (disable)">
+L<Disable some breakpoints (disable)|Devel::Trepan::CmdProcessor::Command::Disable>
 
 =item *
 
-L</"Set an action before a line is executed (action)">
+L<Set an action before a line is executed (action)|Devel::Trepan::CmdProcessor::Command::Action>
 
 =item *
 
-L</"Stop when an expression changes value (watch)">
+L<Stop when an expression changes value (watch)|Devel::Trepan::CmdProcessor::Command::Watch>
 
 =back
-
-=head4 Set a breakpont (break)
-
-B<break> [I<location>] [B<if> I<condition>]
-
-Set a breakpoint. If I<location> is given use the current stopping
-point. An optional condition may be given.
-
-I<Examples:>
-
- break                  # set a breakpoint on the current line
- break gcd              # set a breakpoint in function gcd
- break gcd if $a == 1   # set a breakpoint in function gcd with
-                        # condition $a == 1
- break 10               # set breakpoint on line 10
-
-When a breakpoint is hit the event icon is C<xx>.
-
-See also C<help breakpoints>.
-
-=head4 Set a temporary breakpoint (tbreak)
-
-B<tbreak> [I<location>]
-
-Set a one-time breakpoint. The breakpoint is removed after it is hit.
-If no location is given use the current stopping point.
-
-I<Examples:>
-
-   tbreak
-   tbreak 10               # set breakpoint on line 10
-
-When a breakpoint is hit the event icon is C<x1>.
-
-See also C<break> and C<help breakpoints>.
-
-=head4 Add or modify a condition on a breakpoint (condition)
-
-B<condition> I<bp-number> I<Perl-expression>
-
-I<bp-number> is a breakpoint number.  I<perl-expresion> is a Perl
-expression which must evaluate to true before the breakpoint is
-honored.  If I<perl-expression> is absent, any existing condition is removed;
-i.e., the breakpoint is made unconditional.
-
-I<Examples:>
-
-   condition 5 x > 10  # Breakpoint 5 now has condition x > 10
-   condition 5         # Remove above condition
-
-See also "break", "enable" and "disable".
-
-=head4 Delete some breakpoints (delete)
-
-B<delete> [I<bp-number> [I<bp-number>...]]
-
-Delete some breakpoints.
-
-Arguments are breakpoint numbers with spaces in between. To delete
-all breakpoints, give no arguments.
-
-See also the C<clear> command which clears breakpoints by line number
-and C<info break> to get a list of breakpoint numbers.
-
-=head4 Enable some breakpoints (enable)
-
-B<enable> I<num> [I<num> ...]
-
-Enables breakpoints, watch expressions or actions given as a space
-separated list of numbers which may be prefaces with an 'a', 'b', or 'w'.
-The prefaces are interpreted as follows:
-
-=over
-
-=item a -- action number
-
-=item b -- breakpoint number
-
-=item w -- watch expression number
-
-=back
-
-If I<num> is starts with a digit, I<num> is taken to be a breakpoint number.
-
-=head4 Disable some breakpoints (disable)
-
-B<disable> I<bp-number> [I<bp-number> ...]
-
-Disables the breakpoints given as a space separated list of breakpoint
-numbers. See also C<info break> to get a list of breakpoints
-
-=head4 Set an action before a line is executed (action)
-
-B<action> I<position> I<Perl-statement>
-
-Set an action to be done before the line is executed. If line is
-C<.>, set an action on the line about to be executed. The sequence
-of steps taken by the debugger is:
-
-=over
-
-=item 1. check for a breakpoint at this line
-
-=item 2. print the line if necessary (tracing)
-
-=item 3. do any actions associated with that line
-
-=item 4. prompt user if at a breakpoint or in single-step
-
-=item 5. evaluate line
-
-=back
-
-For example, this will print out the value of C<$foo> every time line
-53 is passed:
-
-=head4 Stop when an expression changes value (watch)
-
-B<watch> I<Perl-expression>
-
-Stop very time I<Perl-expression> changes from its prior value.
-
-I<Examples:>
-
- watch $a  # enter debugger when the value of $a changes
- watch scalar(@ARGV))  # enter debugger if size of @ARGV changes.
 
 =head3 Examining the call stack
 
@@ -751,7 +456,8 @@ B<Examples:>
 
  alias cat list   # "cat file.pl" is the same as "list file.pl"
  alias s   step   # "s" is now an alias for "step".
-                  # The above examples done by default.
+                  # The above "s" alias is initially set up, by
+                  # default. But you can change or remove it.
 
 For more complex definitions, see C<macro>.
 See also C<unalias> and C<show alias>.

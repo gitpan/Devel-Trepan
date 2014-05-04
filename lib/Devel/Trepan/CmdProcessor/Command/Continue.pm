@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012, 2014 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
 use rlib '../../../..';
@@ -31,14 +31,14 @@ our $NAME = set_name();
 our $HELP = <<"HELP";
 =pod
 
-continue [I<location>]
+B<continue> [I<location>]
 
 Leave the debugger loop and continue execution. Subsequent entry to
 the debugger however may occur via breakpoints or explicit calls, or
 exceptions.
 
 If a parameter is given, a temporary breakpoint is set at that position
-before continuing. 
+before continuing.
 
 =head2 Examples:
 
@@ -46,13 +46,14 @@ before continuing.
  continue 10    # continue to line 10
  continue gcd   # continue to first instruction of method gcd
 
-See also L<C<step>|Devel::Trepan::CmdProcessor::Command::Step>,
+=head2 See also:
+
+L<C<step>|Devel::Trepan::CmdProcessor::Command::Step>,
 L<C<next>|Devel::Trepan::CmdProcessor::Command::Next>,
-L<C<finish>|Devel::Trepan::CmdProcessor::Command::Finis> commands and
+L<C<finish>|Devel::Trepan::CmdProcessor::Command::Finish>, and
 C<help location>.
 
 =cut
-
 HELP
 
 

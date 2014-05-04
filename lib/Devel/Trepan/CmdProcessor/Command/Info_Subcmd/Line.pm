@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012 Rocky Bernstein <rocky@cpan.org>
-use warnings; no warnings 'redefine'; no warnings 'once';
+# Copyright (C) 2012, 2014 Rocky Bernstein <rocky@cpan.org>
+use warnings; use utf8;
 use rlib '../../../../..';
-
 package Devel::Trepan::CmdProcessor::Command::Info::Line;
 
 use Devel::Trepan::CmdProcessor::Command::Subcmd::Core;
@@ -12,7 +11,12 @@ use vars qw(@ISA @SUBCMD_VARS);
 @ISA = qw(Devel::Trepan::CmdProcessor::Command::Subcmd);
 # Values inherited from parent
 use vars @Devel::Trepan::CmdProcessor::Command::Subcmd::SUBCMD_VARS;
+
+unless (@ISA) {
+    eval <<"EOE";
 use constant MAX_ARGS => 1;
+EOE
+}
 
 our $SHORT_HELP = 'Line Information about debugged program';
 our $MIN_ABBREV = length('li');
@@ -20,12 +24,16 @@ our $MIN_ABBREV = length('li');
 our $HELP = <<'HELP';
 =pod
 
-Line Information about debugged program.
+info line
+
+Show line information about the selected frame of debugged program.
+
+See also C<info line> and C<info program>.
 =cut
 HELP
 
-
-sub run($$) 
+no warnings 'redefine';
+sub run($$)
 {
     my ($self, $args) = @_;
     my @args      = @$args; shift @args; shift @args;
@@ -61,7 +69,7 @@ sub run($$)
     my $m;
     my $canonic = $proc->canonic_file($filename);
     if (defined $end_line) {
-        $m = sprintf("Function %s in file %s lines %d..%d", 
+        $m = sprintf("Function %s in file %s lines %d..%d",
                      $args[0], $canonic, $line, $end_line);
     } else {
         $m = sprintf "Line %d, file %s", $line, $canonic;
@@ -70,11 +78,15 @@ sub run($$)
     local(*DB::dbline) = "::_<$filename";
     if (defined($DB::dbline[$line]) && 0 != $DB::dbline[$line]) {
         my $cop = 0;
-        $cop = 0 + $DB::dbline[$line];
-        $m = sprintf "OP address: 0x%x.", $cop;
-        $proc->msg($m);
+	no warnings 'once';
+	if ($DB::HAVE_MODULE{'Devel::Callsite'} eq 'call_level_param') {
+	    $cop = Devel::Callsite::callsite($proc->{frame_index});
+	} else {
+	    $cop = 0 + $DB::dbline[$line];
+	}
+        $proc->msg(sprintf "OP address: 0x%x.", $cop);
     } else {
-        $proc->msg("Line not showing as associated with code\n") 
+        $proc->msg("Line not showing as associated with code\n")
             unless $end_line;
     }
 }

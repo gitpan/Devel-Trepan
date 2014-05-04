@@ -42,7 +42,7 @@ sub safe_repr($$;$)
     my ($str, $max, $elipsis) = @_;
     $elipsis = '... ' unless defined $elipsis;
     my $strlen = length($str);
-    $str = '' unless $str;
+    $str = '' unless $str or $str =~ /\d+/;
     if ($max > 0 && $strlen > $max && -1 == index($str, "\n")) {
         sprintf("%s%s%s", substr($str, 0, $max/2),
                 $elipsis,  substr($str, $strlen+1-($max)/2));

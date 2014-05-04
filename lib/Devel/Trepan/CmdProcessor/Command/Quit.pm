@@ -1,4 +1,4 @@
-# Copyright (C) 2011, 2012 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012, 2014 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 
 use rlib '../../../..';
@@ -18,7 +18,7 @@ EOE
 
 use strict;
 
-use vars qw(@ISA); @ISA = @CMD_ISA; 
+use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
@@ -31,10 +31,10 @@ Gently exit the debugger and debugged program.
 
 The program being debugged is exited via I<exit()> which runs the
 Kernel I<at_exit()> finalizers. If a return code is given, that is the
-return code passed to I<exit()> - presumably the return code that will
+return code passed to I<exit()> E<mdash> presumably the return code that will
 be passed back to the OS. If no exit code is given, 0 is used.
 
-=head2 Examples: 
+=head2 Examples:
 
  quit                 # quit prompting if we are interactive
  quit unconditionally # quit without prompting
@@ -42,10 +42,12 @@ be passed back to the OS. If no exit code is given, 0 is used.
  quit 0               # same as "quit"
  quit! 1              # unconditional quit setting exit code 1
 
-See also C<set confirm> and
-L<C<kill>|Devel::Trepan::CmdProcessor::Command::Kill>.  
+=head2 See also:
 
-=cut 
+L<C<set confirm>|Devel::Trepan::CmdProcssor::Command::Set::Confirm> and
+L<C<kill>|Devel::Trepan::CmdProcessor::Command::Kill>.
+
+=cut
 HELP
 
 # This method runs the command
@@ -80,7 +82,6 @@ sub run($$)
     $DB::single = 0;
     $DB::fall_off_on_end = 1;
     $proc->terminated();
-    $proc->{interfaces} = [];
     # No graceful way to stop threads...
     exit $exitrc;
 }
@@ -90,7 +91,7 @@ unless (caller) {
     my $proc = Devel::Trepan::CmdProcessor->new(undef, 'bogus');
     my $cmd = __PACKAGE__->new($proc);
     my $child_pid = fork;
-    if ($child_pid == 0) { 
+    if ($child_pid == 0) {
         $cmd->run([$NAME, 'unconditionally']);
     } else {
         wait;

@@ -19,6 +19,7 @@ use constant CLIENT_SOCKET_OPTS => {
       host    => 'localhost', # Symbolic name
       port    => 1027,  # Arbitrary non-privileged port
       open    => 1,
+      logger  => undef,  # Complaints should be sent here.
 };
 
 #   attr_reader :state
@@ -30,12 +31,13 @@ sub new($;$)
     my ($class, $opts) = @_;
     $opts    = hash_merge($opts, CLIENT_SOCKET_OPTS);
     my $self = {
-        addr => undef,
-        buf  => '',
+        addr      => undef,
+        buf       => '',
+        input     => $opts->{input},
         line_edit => 0, # Our name for GNU readline capability
+        logger    => $opts->{logger},
+        output    => $opts->{output},
         state     => 'disconnected',
-        inout     => undef,
-        logger    => undef  # Complaints should be sent here.
     };
     bless $self, $class;
     $self->open($opts) if $opts->{open};
@@ -49,9 +51,11 @@ sub close($)
     $self->{state} = 'closing';
     if ($self->{inout}) {
         $self->{inout}->shutdown(2);
-        close($self->{inout}) 
+        close($self->{inout})
     }
     $self->{state} = 'disconnected';
+    $self->{input} = $self->{output} = undef;
+    print {$self->{logger}} "Disconnected\n" if $self->{logger};
 }
 
 sub is_disconnected($)
@@ -66,27 +70,28 @@ sub open($;$)
     $opts = hash_merge($opts, CLIENT_SOCKET_OPTS);
     $self->{host} = $opts->{host};
     $self->{port} = $opts->{port};
-    $self->{inout} = 
+    $self->{input} = $opts->{input} ||
         IO::Socket::INET->new(PeerAddr=> $self->{host},
                               PeerPort => $self->{port},
                               Proto    => 'tcp',
                               Type     => SOCK_STREAM
         );
-    if ($self->{inout}) {
+    $self->{output} = $self->{input};
+    if ($self->{input}) {
         $self->{state} = 'connected';
     } else {
-        my $msg = sprintf("Open client for host %s on port %s gives error: %s", 
+        my $msg = sprintf("Open client for host %s on port %s gives error: %s",
                           $self->{host}, $self->{port}, $EVAL_ERROR);
         die $msg;
     }
 }
 
-sub is_empty($) 
+sub is_empty($)
 {
     my($self) = @_;
     0 == length($self->{buf});
 }
-    
+
 # Read one message unit. It's possible however that
 # more than one message will be set in a receive, so we will
 # have to buffer that for the next read.
@@ -96,7 +101,7 @@ sub read_msg($)
     my($self) = @_;
     if ($self->{state} eq 'connected') {
         if (!$self->{buf} || is_empty($self)) {
-            $self->{inout}->recv($self->{buf}, TCP_MAX_PACKET);
+            $self->{input}->recv($self->{buf}, TCP_MAX_PACKET);
             if (is_empty($self)) {
                 $self->close;
                 $self->{state} = 'disconnected';
@@ -111,7 +116,7 @@ sub read_msg($)
     }
 }
 
-sub have_term_readline($) 
+sub have_term_readline($)
 {
     return 0;
 }
@@ -120,8 +125,8 @@ sub have_term_readline($)
 sub write($$)
 {
     my ($self, $msg) = @_;
-    # FIXME: do we have to check the size of msg and split output? 
-    $self->{inout}->send(pack_msg($msg));
+    # FIXME: do we have to check the size of msg and split output?
+    $self->{output}->send(pack_msg($msg));
 }
 
 sub writeline($$)

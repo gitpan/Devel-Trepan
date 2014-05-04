@@ -2,7 +2,7 @@
 # Tracks calls and returns and stores some stack frame
 # information.
 package DB;
-use warnings; no warnings 'redefine';
+use warnings; no warnings 'redefine'; use utf8;
 no warnings 'once';
 use English qw( -no_match_vars );
 
@@ -12,9 +12,7 @@ use constant DEEP_RECURSION_EVENT  =>   4;
 use constant RETURN_EVENT          =>  32;
 use constant CALL_EVENT            =>  64;
 
-use vars qw($return_value @return_value @stack %fn_brkpt);
-
-my ($deep);
+use vars qw($return_value @return_value @ret $ret @stack %fn_brkpt $deep);
 
 BEGIN {
     @DB::ret = ();    # return value of last sub executed in list context
@@ -27,22 +25,37 @@ BEGIN {
     # https://rt.perl.org/rt3//Public/Bug/Display.html?id=117407
     # for justification for why this should be 1000 rather than something
     # smaller.
-    $deep = 500;
+    $DB::deep = 500;
 
     # $stack_depth is to track the current stack depth using the
     # auto-stacked-variable trick. It is 'local'ized repeatedly as
     # a simple way to keep track of #stack.
-    $stack_depth = 0;
-    @stack = (0);     # Per-frame debugger flags
+    $DB::stack_depth = 0;
+    @DB::stack = (0);     # Per-frame debugger flags
 }
 
 sub subcall_debugger {
     if ($DB::single || $DB::signal) {
-        _warnall($#stack . " levels deep in subroutine calls.\n") if $DB::single & 4;
+        _warnall($#DB::stack . " levels deep in subroutine calls.\n") if $DB::single & 4;
 	local $DB::event = 'call';
         $DB::single = 0;
         $DB::signal = 0;
         $DB::running = 0;
+
+	# lock the debugger and get the thread id for the prompt
+	if ($ENV{PERL5DB_THREADED}) {
+	    require threads;
+	    require threads::shared;
+	    import threads::shared qw(share);
+	    no strict; no warnings;
+	    lock($DBGR);
+	    $tid = eval { "[".threads->tid."]" };
+	}
+
+	local $OP_addr =
+	    ($HAVE_MODULE{'Devel::Callsite'} &&
+	     $Devel::Callsite::VERSION >= 0.08)
+	    ? Devel::Callsite::callsite(1) : undef;
 
 	$DB::subroutine =  $sub;
 	my $entry = $DB::sub{$sub};
@@ -158,6 +171,10 @@ sub check_for_stop() {
                 }
 		$DB::single = 1;
 		$DB::wantarray = wantarray;
+		local $OP_addr =
+		    ($HAVE_MODULE{'Devel::Callsite'} &&
+		     $Devel::Callsite::VERSION >= 0.08)
+		    ? Devel::Callsite::callsite(1) : undef;
 		&subcall_debugger() ;
                 last;
             }
@@ -185,7 +202,12 @@ sub push_DB_single_and_set()
 
 
 ####
-# entry point for all subroutine calls
+# When debugging is enabled, this routine gets called instead of
+# the orignal subroutine. $DB::sub contains the intended subroutine
+# to be called. Thus, this routine must run &$DB::sub
+# in order to get the original routine called. The fact that
+# this routine is called instead allows us to wrap or put code
+# around subroutine calls
 #
 sub DB::sub {
     # Do not use a regex in this subroutine -> results in corrupted
@@ -198,15 +220,15 @@ sub DB::sub {
     # sub's return value in (if needed), and an array to put the sub's
     # return value in (if needed).
     my ( $al, $ret, @ret ) = "";
-    if ($sub eq 'threads::new' && $ENV{PERL5DB_THREADED}) {
+    if ($DB::sub eq 'threads::new' && $ENV{PERL5DB_THREADED}) {
         print "creating new thread\n";
     }
 
     # If the last ten characters are '::AUTOLOAD', note we've traced
-    # into AUTOLOAD for $sub.
-    if ( length($sub) > 10 && substr( $sub, -10, 10 ) eq '::AUTOLOAD' ) {
+    # into AUTOLOAD for $DB::sub.
+    if ( length($DB::sub) > 10 && substr( $DB::sub, -10, 10 ) eq '::AUTOLOAD' ) {
         no strict 'refs';
-        $al = " for $$sub" if defined $$sub;
+        $al = " for $$DB::sub" if defined $$DB::sub;
     }
 
     # We stack the stack pointer and then increment it to protect us
@@ -235,7 +257,7 @@ sub DB::sub {
 	{
 	    no strict 'refs';
 	    # call the original subroutine and save the array value.
-	    @ret = &$sub;
+	    @ret = &$DB::sub;
 	}
 
         # Pop the single-step value back off the stack.
@@ -255,12 +277,12 @@ sub DB::sub {
         if ( defined wantarray ) {
             no strict 'refs';
 	    # call the original subroutine and save the array value.
-            $ret = &$sub;
+            $ret = &$DB::sub;
         } else {
             no strict 'refs';
 	    # Call the original lvalue sub and explicitly void the return
             # value.
-            &$sub;
+            &$DB::sub;
             undef $ret;
         }
 
@@ -278,6 +300,14 @@ sub DB::sub {
     }
 }
 
+####
+# When debugging is enabled, this routine gets called instead of the
+# orignal subroutine in a left-hand (assignment) context. $DB::sub
+# contains the intended subroutine to be called. Thus, this routine
+# must run &$DB::sub in order to get the original routine called. The
+# fact that this routine is called instead allows us to wrap or
+# instrument code around subroutine calls.
+#
 sub DB::lsub : lvalue {
     # Possibly [perl #66110] also applies here as in sub.
 
@@ -288,14 +318,14 @@ sub DB::lsub : lvalue {
     # sub's return value in (if needed), and an array to put the sub's
     # return value in (if needed).
     my ( $al, $ret, @ret ) = "";
-    if ($sub =~ /^threads::new$/ && $ENV{PERL5DB_THREADED}) {
+    if ($DB::sub =~ /^threads::new$/ && $ENV{PERL5DB_THREADED}) {
         print "creating new thread\n";
     }
 
     # If the last ten characters are '::AUTOLOAD', note we've traced
-    # into AUTOLOAD for $sub.
-    if ( length($sub) > 10 && substr( $sub, -10, 10 ) eq '::AUTOLOAD' ) {
-        $al = " for $$sub" if defined $$sub;;
+    # into AUTOLOAD for $DB::sub.
+    if ( length($DB::sub) > 10 && substr( $DB::sub, -10, 10 ) eq '::AUTOLOAD' ) {
+        $al = " for $$DB::sub" if defined $$DB::sub;;
     }
 
     # We stack the stack pointer and then increment it to protect us
@@ -313,7 +343,7 @@ sub DB::lsub : lvalue {
         # back here when the sub is finished.
 	{
 	    no strict 'refs';
-	    @ret = &$sub;
+	    @ret = &$DB::sub;
 	}
 
         # Pop the single-step value back off the stack.
@@ -333,11 +363,11 @@ sub DB::lsub : lvalue {
         if ( defined wantarray ) {
             no strict 'refs';
             # Save the value if it's wanted at all.
-            $ret = &$sub;
+            $ret = &$DB::sub;
         } else {
             no strict 'refs';
             # Void return, explicitly.
-            &$sub;
+            &$DB::sub;
             undef $ret;
         }
 

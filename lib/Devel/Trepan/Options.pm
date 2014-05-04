@@ -1,4 +1,4 @@
-# Copyright (C) 2011-2013 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2014 Rocky Bernstein <rocky@cpan.org>
 use strict;
 use warnings;
 package Devel::Trepan::Options;
@@ -16,6 +16,7 @@ BEGIN {
     $PROGRAM_NAME = 'trepan.pl';
     my @OLD_INC = @INC;
     use rlib '../..';
+    use rlib '.';
     use Devel::Trepan::Version;
     @INC = @OLD_INC;
 }
@@ -36,8 +37,6 @@ my $initfile = File::Spec->catfile($HOME, '.treplrc');
 $DEFAULT_OPTIONS = {
     basename     => 0,
     batchfile    => undef,
-    client       => 0,       # Set 1 if we want to connect to an out-of
-                             # process debugger "server".
     cmddir       => [],      # Additional directories of debugger commands
     cmdfiles     => [],      # Files containing debugger commands to 'source'
     exec_strs    => [],      # Perl strings to evaluate
@@ -62,6 +61,67 @@ sub show_version()
     exit 10;
 }
 
+sub check_tcp_opts($$) {
+    my ($server_client, $opts) = @_;
+    my ($protocol, $host, $port) = @$opts;
+    $opts->[1] = $host || $DEFAULT_OPTIONS->{host};
+    $opts->[2] = $port || $DEFAULT_OPTIONS->{port};
+    unless ($opts->[2] =~ /^\d+$/) {
+	print STDERR "port should be a number: got $opts->[2]\n";
+	$opts->[2] = $DEFAULT_OPTIONS->{port};
+    }
+    $opts;
+}
+
+sub bad_tty_opts($$) {
+    my ($server_client, $opts) = @_;
+    if (scalar @$opts != 3) {
+	return "For now, you need to specify an input and output pseudo tty";
+    }
+    my ($protocol, $inp_pty, $out_pty) = @$opts;
+    return "input pseudo-tty '$inp_pty' is not character device"
+	unless -c $inp_pty;
+    return "output pseudo-tty name '$out_pty' is not a character device"
+	unless -c $out_pty;
+    return "input pseudo-tty '$inp_pty' is not readable"
+	unless -r $inp_pty;
+    return "output pseudo-tty '$out_pty' is not writeable"
+	unless -w $out_pty;
+    return undef;
+}
+
+sub check_protocol($)
+{
+    my ($opts) = @_;
+    my $server_type = $opts->[0];
+    if ($server_type !~ /^tcp|^tty/) {
+	print STDERR
+	    "Protocol should be either 'tcp' or 'tty': got '$server_type'\n";
+	$opts->[0] = 'tcp';
+    }
+}
+
+sub parse_client_server_opts($$$)
+{
+    my ($server_client, $opts, $server_opts) = @_;
+    if (scalar @$server_opts == 1) {
+	if (!$server_opts->[0]) {
+	    $server_opts->[0] = 'tcp';
+	}
+	check_protocol($server_opts);
+    } elsif (scalar @$server_opts <= 3) {
+	check_protocol($server_opts);
+	if ($server_opts->[0] eq 'tcp'){
+	    $server_opts = check_tcp_opts($server_client, $server_opts);
+	    $opts->{host} = $server_opts->[1];
+	    $opts->{port} = $server_opts->[2];
+	} else {
+	    my $mess = bad_tty_opts($server_client, $server_opts);
+	    die $mess if $mess;
+	}
+    }
+}
+
 sub process_options($)
 {
     $Getopt::Long::autoabbrev = 1;
@@ -70,29 +130,27 @@ sub process_options($)
     my $opts = $DEFAULT_OPTIONS;
 
     my $result = &GetOptionsFromArray($argv,
-         'basename'     => \$opts->{basename},
-         'batch:s'      => \$opts->{batchfile},
-         'bw'           => \$opts->{bw},
-         'cd:s'         => \$opts->{initial_dir},
-         'client'       => \$opts->{client},
-         'cmddir=s@'    => \$opts->{cmddir},
-         'command=s@'   => \$opts->{cmdfiles},
-         'e|exec=s@'    => \$opts->{exec_strs},
-         'fall-off-end' => \$opts->{fall_off_end},
-         'help'         => \$help,
-         'highlight'    => \$opts->{highlight},
-         'host:s'       => \$opts->{host},
-         'man'          => \$man,
-         'no-highlight' => sub { $opts->{highlight} = 0},
-         'no-readline' => sub { $opts->{readline} = 0},
-         'nx'           => \$opts->{nx},
-         'port:n'       => \$opts->{port},
-         'post-mortem'  => \$opts->{post_mortem},
-         'readline'     => \$opts->{readline},
-         'server'       => \$opts->{server},
-         'testing:s'    => \$opts->{testing},
-         'version'      => \$show_version,
-         'x|trace'      => \$opts->{traceprint},
+         'basename'      => \$opts->{basename},
+         'batch:s'       => \$opts->{batchfile},
+         'bw'            => \$opts->{bw},
+         'cd:s'          => \$opts->{initial_dir},
+         'client=s@{0,3}' => \$opts->{client},
+         'cmddir=s@'      => \$opts->{cmddir},
+         'command=s@'     => \$opts->{cmdfiles},
+         'e|exec=s@'      => \$opts->{exec_strs},
+         'fall-off-end'   => \$opts->{fall_off_end},
+         'help'           => \$help,
+         'highlight'      => \$opts->{highlight},
+         'man'            => \$man,
+         'no-highlight'   => sub { $opts->{highlight} = 0},
+         'no-readline'    => sub { $opts->{readline} = 0},
+         'nx'             => \$opts->{nx},
+         'post-mortem'    => \$opts->{post_mortem},
+         'readline'       => \$opts->{readline},
+         'server=s@{0,3}' => \$opts->{server},
+         'testing:s'      => \$opts->{testing},
+         'version'        => \$show_version,
+         'x|trace'        => \$opts->{traceprint},
         );
 
     pod2usage(-input => pod_where({-inc => 1}, __PACKAGE__),
@@ -115,7 +173,16 @@ sub process_options($)
     if ($opts->{server} and $opts->{client}) {
         printf STDERR
             "Pick only on from of the --server or --client options\n";
+    } else {
+	# use Enbugger 'trepan'; Enbugger->stop;
+	# $opts->{server} = ['tcp'];
+	if ($opts->{server}) {
+	    parse_client_server_opts('server', $opts, $opts->{server});
+	} elsif ($opts->{client}) {
+	    parse_client_server_opts('client', $opts, $opts->{client})
+	}
     }
+
     $opts;
 }
 
@@ -147,44 +214,56 @@ unless (caller) {
     import Data::Dumper;
     print Dumper($opts), "\n";
     my $pid = fork();
+    # if ($pid == 0) {
+    #     my @argv = qw(--version);
+    #     my $opts = process_options(\@argv);
+    #     exit 0;
+    # } else {
+    #     waitpid($pid, 0);
+    #     print "exit code: ", $?>>8, "\n";
+    # }
+    # $pid = fork();
+    # if ($pid == 0) {
+    #     my @argv = qw(--cd /tmp --cmddir /tmp);
+    #     my $opts = process_options(\@argv);
+    #     print Dumper($opts), "\n";
+    #     exit 0;
+    # } else {
+    #     waitpid($pid, 0);
+    #     print "exit code: ", $?>>8, "\n";
+    # }
+    # exit;
+    # $pid = fork();
+    # if ($pid == 0) {
+    #     my @argv = qw(--cd /bogus);
+    #     my $opts = process_options(\@argv);
+    #     exit 0
+    # } else {
+    #     waitpid($pid, 0);
+    #     print "exit code: ", $?>>8, "\n";
+    # }
+    # $pid = fork();
+    # if ($pid == 0) {
+    #     my @argv = ('--batch', __FILE__);
+    #     my $opts = process_options(\@argv);
+    #     print Dumper($opts), "\n";
+    #     exit 0
+    # } else {
+    #     waitpid($pid, 0);
+    #     print "exit code: ", $?>>8, "\n";
+    # }
+
+    # $pid = fork();
     if ($pid == 0) {
-        my @argv = qw(--version);
-        my $opts = process_options(\@argv);
-        exit 0;
-    } else {
-        waitpid($pid, 0);
-        print "exit code: ", $?>>8, "\n";
-    }
-    $pid = fork();
-    if ($pid == 0) {
-        my @argv = qw(--cd /tmp --cmddir /tmp);
+        my @argv = ('--server', '--', __FILE__);
         my $opts = process_options(\@argv);
         print Dumper($opts), "\n";
-        exit 0;
-    } else {
-        waitpid($pid, 0);
-        print "exit code: ", $?>>8, "\n";
-    }
-    exit;
-    $pid = fork();
-    if ($pid == 0) {
-        my @argv = qw(--cd /bogus);
-        my $opts = process_options(\@argv);
         exit 0
     } else {
         waitpid($pid, 0);
         print "exit code: ", $?>>8, "\n";
     }
-    $pid = fork();
-    if ($pid == 0) {
-        my @argv = ('--batch', __FILE__);
-        my $opts = process_options(\@argv);
-        print Dumper($opts), "\n";
-        exit 0
-    } else {
-        waitpid($pid, 0);
-        print "exit code: ", $?>>8, "\n";
-    }
+
 }
 
 1;
@@ -216,17 +295,21 @@ trepan.pl - Perl "Trepanning" Debugger
                            Works like Perl's -e switch
       --nx                 Don't run user startup file (e.g. .treplrc)
 
-      --client | --server  Set for out-of-process debugging. The server
-                           rus the Perl program to be debugged runs.
+      --client {'tcp' host port} | {'tty', input-slave output-slave}
+                           Set for out-of-process debugging.
                            The client runs outside of this process.
+                           'tcp' uses TCP/IP
+                           'tty' uses pseudo tty.
+
+      --server {'tcp' host port} | {'tty'}
+                           Set for out-of-process debugging. The server
+                           rus the Perl program to be debugged runs.
 
       --fall-off-end       Don't stay in debugger when program terminates
 
       --host NAME          Set DNS name or IP address to communicate on.
                            The default is 127.0.0.1
 
-      --port N             TCP/IP port to use on remote connection
-                           The default is 1954
       --post-mortem        Enter debugger on die
       --readline  | --no-readline
                            Try or don't try to use Term::Readline

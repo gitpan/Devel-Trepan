@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011-2013 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2014 Rocky Bernstein <rocky@cpan.org>
 
-use warnings; no warnings 'redefine';
+use warnings; no warnings 'redefine'; use utf8;
 
 # Interface for debugging a program but having user control
 # reside outside of the debugged process, possibly on another
@@ -11,50 +11,55 @@ use English qw( -no_match_vars );
 our (@ISA);
 
 # Our local modules
-BEGIN {
-    my @OLD_INC = @INC;
-    use rlib '../../..';
-    use if !@ISA, Devel::Trepan::Interface;
-    use if !@ISA, Devel::Trepan::Interface::ComCodes;
-    use if !@ISA, Devel::Trepan::IO::Input;
-    use Devel::Trepan::Util qw(hash_merge YES NO);
-    use if !@ISA, Devel::Trepan::IO::TCPServer;
-    @INC = @OLD_INC;
-}
+use rlib '../../..';
+use rlib '.';
+use if !@ISA, Devel::Trepan::Interface::ComCodes;
+use if !@ISA, Devel::Trepan::IO::Input;
+use Devel::Trepan::Util qw(hash_merge YES NO);
+use if !@ISA, Devel::Trepan::IO::TCPServer;
+use if !@ISA, Devel::Trepan::IO::FIFOServer;
+
+use constant HAVE_TTY => eval q(use Devel::Trepan::IO::TTYServer; 1) ? 1 : 0;
 
 use strict;
 
 @ISA = qw(Devel::Trepan::Interface Exporter);
 
 use constant DEFAULT_INIT_CONNECTION_OPTS => {
-    io => 'TCP',
+    io => 'tcp',
     logger => undef  # An Interface. Complaints go here.
 };
 
 sub new
 {
-    my($class, $inout, $out, $connection_opts) = @_;
-    $connection_opts = hash_merge($connection_opts, DEFAULT_INIT_CONNECTION_OPTS);
+    my($class, $input, $out, $connection_opts) = @_;
+    $connection_opts = hash_merge($connection_opts,
+				  DEFAULT_INIT_CONNECTION_OPTS);
 
-    # at_exit { finalize };
-    unless (defined($inout)) {
-        my $server_type = $connection_opts->{io};
-        # FIXME: complete this.
-        # if 'FIFO' == server_type
-        #     FIFOServer.new
-        # else
-        $inout = Devel::Trepan::IO::TCPServer->new($connection_opts);
-        # }
-    }
+    my $server_type = $connection_opts->{io};
     my $self = {
-        # For Compatability
-        output => $inout,
-        inout  => $inout,
-        input  => $inout,
         interactive => 1, # Or at least so we think initially
-
         logger => $connection_opts->{logger}
     };
+    unless (defined($input)) {
+	my $server;
+	if ('tty' eq $server_type) {
+	    if (HAVE_TTY) {
+		$server = Devel::Trepan::IO::TTYServer->new($connection_opts);
+	    } else {
+		die "You don't have Devel::Trepan::TTY installed";
+	    }
+        } elsif ('fifo' eq $server_type) {
+	    $server = Devel::Trepan::IO::FIFOServer->new($connection_opts);
+        } elsif ('tcp' eq $server_type) {
+	    $server = Devel::Trepan::IO::TCPServer->new($connection_opts);
+	} else {
+	    die "Unknown communication protocol: $server_type";
+	}
+	# For Compatability
+	$self->{output} = $self->{input} = $self->{inout} = $server;
+    }
+
     bless $self, $class;
     return $self;
 }
@@ -63,16 +68,21 @@ sub new
 sub close($)
 {
     my ($self) = @_;
-    if ($self->{inout} && $self->{inout}->is_connected) {
-        $self->{inout}->write(QUIT . 'bye');
-        $self->{inout}->close;
+    $self->{output}->write(QUIT . 'bye');
+    # FIXME: remove sleep and figure out to find when above worked.
+    sleep 1;
+    if ($self->{output} == $self->{input}) {
+    	$self->{output}->close;
+    } else {
+    	$self->{input}->close;
+    	$self->{output}->close;
     }
 }
 
 sub is_closed($)
 {
     my ($self) = @_;
-    $self->{inout}->is_closed
+    $self->{input}->is_closed && $self->{output}->is_closed
 }
 
 sub is_interactive($)
@@ -122,15 +132,6 @@ sub is_connected($)
     'connected' eq $self->{inout}->{state};
 }
 
-# print exit annotation
-sub finalize($;$)
-{
-    my ($self, $last_wishes) = @_;
-    $last_wishes = 'QUIT' unless defined $last_wishes;
-    $self->{inout}->writeline($last_wishes) if $self->is_connected;
-    $self->close;
-}
-
 sub is_input_eof($)
 {
     my ($self) = @_;
@@ -142,7 +143,10 @@ sub is_input_eof($)
 sub msg($;$)
 {
     my ($self, $msg) = @_;
-    $self->{inout}->writeline(PRINT . $msg);
+    my @msg = split(/\n/, $msg);
+    foreach my $line (@msg) {
+	$self->{inout}->writeline(PRINT . $line);
+    }
 }
 
 # used to write to a debugger that is connected to this
@@ -150,7 +154,10 @@ sub msg($;$)
 sub errmsg($;$)
 {
     my ($self, $msg) = @_;
-    $self->{inout}->writeline(SERVERERR . $msg);
+    my @msg = split(/\n/, $msg);
+    foreach my $line (@msg) {
+	$self->{inout}->writeline(SERVERERR . $line);
+    }
 }
 
 # used to write to a debugger that is connected to this
@@ -191,8 +198,12 @@ sub readline($;$)
         $self->errmsg("Server communication protocol error, resyncing...");
         return ('#');
     } else {
-        my $read_ctrl = substr($coded_line,0,1);
-        substr($coded_line, 1);
+	if ($coded_line)  {
+	    my $read_ctrl = substr($coded_line,0,1);
+	    return substr($coded_line, 1);
+	} else {
+	    return "";
+	}
     }
 }
 
@@ -226,7 +237,11 @@ sub write_confirm($$$)
 
 # Demo
 unless (caller) {
-    my $intf = Devel::Trepan::Interface::Server->new(undef, undef, {open => 0});
+    my $intf = __PACKAGE__->new(undef, undef, {open => 0, io => 'tcp'});
+    # $intf->close();
+    $intf = __PACKAGE__->new(undef, undef,
+			     {open => 1, io => 'tty', logger=>\*STDOUT});
+    $intf->close();
 }
 
 1;

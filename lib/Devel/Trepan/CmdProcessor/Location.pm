@@ -1,4 +1,4 @@
-# Copyright (C) 2011-2013 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2014 Rocky Bernstein <rocky@cpan.org>
 use strict;
 use Exporter;
 use warnings;
@@ -179,10 +179,16 @@ sub source_location_info($)
     my $line_number = $self->line() || 0;
 
     my $op_addr = '';
-    if ($self->{settings}{displayop}
-	&& $DB::OP_addr
-	&& $self->{frame_index}== 0) {
-        $op_addr = sprintf " \@0x%x", $DB::OP_addr;
+    if ($self->{settings}{displayop}) {
+	my $frame_index = $self->{frame_index};
+	if ($DB::OP_addr && $frame_index == 0) {
+	    $op_addr = sprintf " \@0x%x", $DB::OP_addr;
+	} elsif ($DB::HAVE_MODULE{'Devel::Callsite'} eq 'call_level_param') {
+	    my $skip = DB::caller_levels_skip();
+	    my $addr = Devel::Callsite::callsite($frame_index + $skip);
+	    $op_addr = sprintf(" \@0x%x", $addr)
+		if defined $addr and $addr > 0;
+	}
     }
     if (filename_is_eval($filename)) {
 	### FIXME: put this all into DB::LineCache
@@ -212,7 +218,8 @@ sub source_location_info($)
                 " remapped $filename:$line_number$op_addr";
         }
     }
-    $canonic_filename = $self->canonic_file($self->filename(), 0);
+    $canonic_filename = $self->canonic_file($self->filename(), 0)
+	|| $filename;
     return "${canonic_filename}:${line_number}$op_addr";
 }
 

@@ -1,9 +1,21 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011-2013 Rocky Bernstein <rocky@cpan.org>
-use warnings;
+# Copyright (C) 2011-2014 Rocky Bernstein <rocky@cpan.org>
+# Top-level require that pulls in the rest of the debugger.
+# It's also the thing that gets called from DB:: hooks
+
+use warnings; use utf8;
 # FIXME: Can't use strict;
 
 package Devel::Trepan::Core;
+
+# Something in the require process munges $0 into 'trepan.pl'.
+# To make matters more sensitive, Enbugger processes $0 special
+# to make it debuggable. Thereore...
+#    save and restore $0.
+my $dollar0_save;
+BEGIN {
+    $dollar0_save = $0;
+}
 
 use rlib '.';
 use Devel::Trepan::DB;
@@ -18,11 +30,10 @@ use Devel::Trepan::Interface::Server;
 use Devel::Trepan::Util;
 # print join(', ', @INC, "\n");
 
-use vars qw(@ISA $dbgr $HAVE_BULLWINKLE);
+use vars qw(@ISA $dbgr);
 
-BEGIN {
-    $HAVE_BULLWINKLE = eval("use Devel::Trepan::BWProcessor; 1") ? 1 : 0;
-}
+use constant HAVE_BULLWINKLE => eval q(use Devel::Trepan::BWProcessors; 1) ? 1 : 0;
+
 
 @ISA = qw(DB);
 
@@ -114,6 +125,10 @@ sub awaken($;$) {
         $opts = eval "$ENV{'TREPANPL_OPTS'}";
     }
 
+    # require Data::Dumper;
+    # import Data::Dumper;
+    # print Dumper($opts), "\n";
+
     my $exec_strs_ary = $opts->{exec_strs};
     if (defined $exec_strs_ary && scalar @{$exec_strs_ary}) {
         $self->{exec_strs} = $opts->{exec_strs};
@@ -128,7 +143,7 @@ sub awaken($;$) {
 
     my $proc;
     my $batch_filename = $opts->{testing};
-    if ($opts->{bw} && $HAVE_BULLWINKLE) {
+    if ($opts->{bw} && HAVE_BULLWINKLE) {
 	my $bw_opts = $opts->{bw};
 	$bw_opts = {} unless ref($bw_opts) eq 'HASH';
 	if (defined $batch_filename) {
@@ -175,11 +190,27 @@ sub awaken($;$) {
 		    exists($opts->{readline});
 	    }
 	    if ($opts->{server}) {
-		my $server_opts = {
-		    host   => $opts->{host},
-		    port   => $opts->{port},
-		    logger => *STDOUT
-		};
+		my $server_opts = $opts->{server};
+		if ($server_opts->[0] eq 'tcp') {
+		    $server_opts = {
+			io     => 'tcp',
+			host   => $opts->{host},
+			port   => $opts->{port},
+			logger => *STDOUT
+		    };
+		} elsif ($server_opts->[0] eq 'fifo') {
+		    $server_opts = {
+			io     => 'fifo',
+			logger => *STDOUT
+		    };
+		} elsif ($server_opts->[0] eq 'tty') {
+		    $server_opts = {
+			io     => 'tty',
+			logger => *STDOUT
+		    }
+		} else {
+		    die "Unknown server protocol: $server_opts->[0]";
+		}
 		$intf = [
 		    Devel::Trepan::Interface::Server->new(undef, undef,
 							  $server_opts)
@@ -213,6 +244,10 @@ sub display_lists ($)
     my $self = shift;
     return $self->{proc}{displays}{list};
 }
+
+# Restore the value of $0 that we had when we came in here.
+# See above for why we have to save and restore $0.
+$0 = $dollar0_save;
 
 END {
     $DB::ready = 0;
