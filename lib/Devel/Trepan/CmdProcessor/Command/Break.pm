@@ -25,6 +25,11 @@ use strict; use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
+=pod
+
+=head2 Synopsis:
+
+=cut
 our $HELP = <<'HELP';
 =pod
 
@@ -46,8 +51,8 @@ When a breakpoint is hit the event icon is C<xx>.
 =head2 See also:
 
 C<help breakpoints>, L<C<info
-breakpoints>|Devel::Trepan::CmdProcessor::Command::Info::BreakPoints>,
-and C<help syntax location>.
+breakpoints>|Devel::Trepan::CmdProcessor::Command::Info::Breakpoints>,
+and L<C<help syntax location>|Devel::Trepan::CmdProcessor::Command::Help::location>.
 
 =cut
 HELP

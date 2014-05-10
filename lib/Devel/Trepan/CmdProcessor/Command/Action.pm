@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011-2013 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2014 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 use rlib '../../../..';
 
@@ -25,6 +25,11 @@ use strict; use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
+=pod
+
+=head2 Synopsis:
+
+=cut
 our $HELP = <<'HELP';
 =pod
 
@@ -57,7 +62,7 @@ For example, this will print out the value of C<$foo> every time line
 
 =head2 See also:
 
-<C<help breakpoints>
+C<help breakpoints>
 
 =cut
 HELP

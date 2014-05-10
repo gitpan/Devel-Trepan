@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012, 2014 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine'; no warnings 'once';
 use rlib '../../../../..';
 
@@ -21,13 +21,18 @@ unless (@ISA) {
 EOE
 }
 @ISA = qw(Devel::Trepan::CmdProcessor::Command::Subcmd);
+=pod
 
+=head2 Synopsis:
+
+=cut
 our $HELP = <<'HELP';
 =pod
 
-info functions [I<regexp>]
+B<info functions> [I<regexp>]
 
-All functions names or those matching I<regexp>.
+Give functions names or those matching I<regexp>. If no regular
+expresion is given, list all functions.
 =cut
 HELP
 
@@ -35,13 +40,12 @@ our $SHORT_HELP = 'All function names, or those matching REGEXP';
 our $MIN_ABBREV = length('fu');
 
 sub complete($$)
-{ 
+{
     my ($self, $prefix) = @_;
-    my @functions = sort keys %DB::sub;
-    Devel::Trepan::Complete::complete_token(\@functions, $prefix);
+    Devel::Trepan::Complete::complete_function($prefix);
 }
 
-sub run($$) 
+sub run($$)
 {
     my ($self, $args) = @_;
     my $proc = $self->{proc};
@@ -59,10 +63,10 @@ sub run($$)
             my $file_range = $DB::sub{$function};
             if ($file_range =~ /^(.+):(\d+-\d+)/) {
                 my ($filename, $range) = ($1, $2);
-                $FILES{$filename} ||= []; 
+                $FILES{$filename} ||= [];
                 push @{$FILES{$filename}}, [$function, $range];
             } else {
-                $FILES{$file_range} ||= []; 
+                $FILES{$file_range} ||= [];
                 push @{$FILES{$file_range}}, [$function];
             }
         }
@@ -74,7 +78,14 @@ sub run($$)
             }
         }
     } else {
-        $proc->msg("No matching functions");
+	my @fns = Devel::Trepan::Complete::complete_builtin($regexp);
+	if (@fns) {
+            for my $entry (@fns) {
+                $proc->msg($entry . ' is a built-in function');
+            }
+	} else {
+	    $proc->msg("No matching functions");
+	}
     }
 }
 

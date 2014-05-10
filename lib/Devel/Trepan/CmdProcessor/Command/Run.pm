@@ -23,12 +23,22 @@ use vars qw(@ISA);
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
-our $HELP = <<"HELP";
+
+=pod
+
+=head2 Synopsis:
+
+=cut
+our $HELP = <<'HELP';
 =pod
 
 B<run>
 
 Restart debugger and program via an I<exec()> call.
+
+Hash reference variable $Devel::Trepan::Core::invoke_opts contains a
+hash of options that were used to start the debugger. These are
+consulted in figuring out how to restart.
 
 =head2 See also:
 
@@ -52,7 +62,7 @@ sub run($$) {
     my $intf = $proc->{interfaces}[-1];
     $intf->save_history($proc->{last_command});
 
-    # $self->msg( "Running: " . join(' ', @script));
+    $self->msg( "Running: " . join(' ', @script));
 
     # And run Perl again.  We use exec() to keep the
     # PID stable (and that way $ini_pids is still valid).

@@ -22,6 +22,11 @@ use vars qw(@ISA); @ISA = @CMD_ISA;
 use vars @CMD_VARS;  # Value inherited from parent
 
 our $NAME = set_name();
+=pod
+
+=head2 Synopsis:
+
+=cut
 our $HELP = <<'HELP';
 =pod
 
@@ -73,7 +78,9 @@ by adding the appropriate sigil C<@>, C<%>, or C<$>.
 
 =head2 See also:
 
-L<C<set auto eval>|Devel::Trepan::CmdProcessor::Command::Set::Auto::Eval>.
+L<C<set auto
+eval>|Devel::Trepan::CmdProcessor::Command::Set::Auto::Eval>, and
+L<C<set display eval>|Devel::Trepan::CmdProcessor::Command::Set::Display::Eval>.
 =cut
 HELP
 
@@ -88,8 +95,10 @@ sub complete($$)
         } else {
             $self->{proc}->current_source_text();
         }
+    } elsif (substr($prefix, 0, 1) =~/[&A-Za-z_]/) {
+	Devel::Trepan::Complete::complete_function($prefix);
     } else {
-        $prefix;
+        ($prefix);
     }
 }
 

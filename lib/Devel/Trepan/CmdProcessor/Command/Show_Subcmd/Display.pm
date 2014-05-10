@@ -11,8 +11,24 @@ use Devel::Trepan::CmdProcessor::Command::Subcmd::Core;
 use Devel::Trepan::CmdProcessor::Command::Subcmd::SubsubMgr;
 use vars qw(@ISA @SUBCMD_VARS);
 our $MIN_ABBREV = length('au');
-our $HELP   = 'Show display-related controls';
-our $SHORT_HELP  = $HELP;
+=pod
+
+=head2 Synopsis:
+
+=cut
+our $HELP   = <<"EOH";
+=pod
+
+B<show display> [I<show-display sub-commmand> ...]
+
+Show display-related controls
+
+=head2 See also:
+
+L<C<set display>|Devel::Trepan::CmdProcessor::Command::Set::Display>
+=cut
+EOH
+our $SHORT_HELP  = 'Show display-related controls';
 @ISA = qw(Devel::Trepan::CmdProcessor::Command::SubsubcmdMgr);
 
 

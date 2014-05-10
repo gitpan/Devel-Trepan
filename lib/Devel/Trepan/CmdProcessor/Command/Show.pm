@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012, 2014 Rocky Bernstein <rocky@cpan.org>
 use warnings; no warnings 'redefine';
 use rlib '../../../..';
 
@@ -23,8 +23,14 @@ use vars qw(@ISA);
 @ISA = qw(Devel::Trepan::CmdProcessor::Command::SubcmdMgr);
 use vars @CMD_VARS;
 
-$NAME = set_name();
-$HELP = <<'HELP';
+our $NAME = set_name();
+=pod
+
+=head2 Synopsis:
+
+=cut
+
+our $HELP = <<'HELP';
 =pod
 
 B<show> [I<show sub-commmand> ...]

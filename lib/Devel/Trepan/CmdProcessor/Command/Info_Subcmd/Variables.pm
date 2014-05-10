@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011-2012 Rocky Bernstein <rocky@cpan.org>
+# Copyright (C) 2011-2012, 2014 Rocky Bernstein <rocky@cpan.org>
 use warnings;
 use rlib '../../../../..';
 use strict;
@@ -12,10 +12,17 @@ use Devel::Trepan::CmdProcessor::Command::Subcmd::Core;
 use Devel::Trepan::CmdProcessor::Command::Subcmd::SubsubMgr;
 use vars qw(@ISA @SUBCMD_VARS);
 our $MIN_ABBREV = length('va');
+=pod
+
+=head2 Synopsis:
+
+=cut
 our $HELP   = <<'HELP';
 =pod
 
-Information on C<our> or C<my> variables.
+B<info variables> [B<lexicals>|B<my>|B<our> ...]
+
+Information on I<our>, I<my>, or I<lexical> variables.
 =cut
 HELP
 our $SHORT_HELP   = "List 'our' or 'my' variables.";

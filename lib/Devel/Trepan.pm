@@ -18,7 +18,7 @@ use Exporter;
 
 use constant PROGRAM => 'trepan.pl';
 use version;
-$VERSION='0.54'; # To fool CPAN indexer. Is <= real version
+$VERSION='0.55'; # To fool CPAN indexer. Is <= real version
 $VERSION = $Devel::Trepan::Version::VERSION;
 $PROGRAM = PROGRAM;
 
@@ -152,7 +152,19 @@ effect. See L</Plugins> and L</Recommended Modules> below.
 
 From a shell:
 
-    $ trepan.pl [trepan-opts] -- perl-program [perl-program-opts]
+    $ trepan.pl [trepan-opts] [--] perl-program [perl-program-opts]
+
+Or for those who prefer the traditional Perlish way:
+
+    $ perl -d:Trepan perl-program [perl-program-opts]
+
+The problem with the above "perlish" approach is that you get the
+default trepan options. If you want to set any of these, you'll have
+to set them either with a debugger command (possibly via startup
+script, e.g. *~/.treplrc` or via environment variable
+I<TREPANPL_OPTS>. To see the environement variables, run I<trepan.pl>
+with the C<--verbose> option or run `eval $ENV{TREPANPL_OPTS} inside
+of the debugger.
 
 For out-of-process (and possibly out-of server) debugging:
 
@@ -237,11 +249,11 @@ variable's value.
 
 =item *
 
-L<Set a breakpoint (break)|Devel::Trepan::CmdProcessor::Command::Break>
+L<Set an action to be done before the line is executed (action)|Devel::Trepan::CmdProcessor::Command::Action>
 
 =item *
 
-L<Set a temporary breakpoint (tbreak)|Devel::Trepan::CmdProcessor::Command::TBreak>
+L<Set a breakpoint (break)|Devel::Trepan::CmdProcessor::Command::Break>
 
 =item *
 
@@ -261,7 +273,7 @@ L<Enable some breakpoints (enable)|Devel::Trepan::CmdProcessor::Command::Enable>
 
 =item *
 
-L<Set an action before a line is executed (action)|Devel::Trepan::CmdProcessor::Command::Action>
+L<Set a temporary breakpoint (tbreak)|Devel::Trepan::CmdProcessor::Command::TBreak>
 
 =item *
 
@@ -321,14 +333,6 @@ breakpoints is in L</Making the program stop at certain points>.
 
 =item *
 
-L<Step into (step)|Devel::Trepan::CmdProcessor::Command::Step>
-
-=item *
-
-L<Step over (next)|Devel::Trepan::CmdProcessor::Command::Next>
-
-=item *
-
 L<Continue execution (continue)|Devel::Trepan::CmdProcessor::Command::Continue>
 
 =item *
@@ -337,11 +341,23 @@ L<Step out (finish)|Devel::Trepan::CmdProcessor::Command::Finish>
 
 =item *
 
-L<Gently exit debugged program (quit)|Devel::Trepan::CmdProcessor::Command::Quit>
+L<Specify a how to handle a signal (handle)|Devel::Trepan::CmdProcessor::Command::Handle>
+
+=item *
+
+L<Step over (next)|Devel::Trepan::CmdProcessor::Command::Next>
+
+=item *
+
+L<Step into (step)|Devel::Trepan::CmdProcessor::Command::Step>
 
 =item *
 
 L<Hard termination (kill)|Devel::Trepan::CmdProcessor::Command::Kill>
+
+=item *
+
+L<Gently exit debugged program (quit)|Devel::Trepan::CmdProcessor::Command::Quit>
 
 =item *
 
@@ -379,17 +395,17 @@ L<Print all or parts of the call stack
 
 =item *
 
+L<Move to a less recent frame
+(down)|Devel::Trepan::CmdProcessor::Command::Down>
+
+=item *
+
 L<Select a call frame
 (frame)|Devel::Trepan::CmdProcessor::Command::Frame>
 
 =item *
 
 L<Move to a more recent frame (up)|Devel::Trepan::CmdProcessor::Command::Up>
-
-=item *
-
-L<Move to a less recent frame
-(down)|Devel::Trepan::CmdProcessor::Command::Down>
 
 =back
 
@@ -403,7 +419,7 @@ L<Define an alias (alias)|Devel::Trepan::CmdProcessor::Command::Alias>
 
 =item *
 
-L<Remove an alias (unalias)|Devel::Trepan::CmdProcessor::Command::Unalias>
+L<List the completions for the rest of the line|Devel::Trepan::CmdProcessor::Command::Complete>
 
 =item *
 
@@ -428,6 +444,10 @@ L<Modify parts of the Debugger Environment|Devel::Trepan::CmdProcessor::Command:
 =item *
 
 L<Show parts of the Debugger Environment|Devel::Trepan::CmdProcessor::Command::Show>
+
+=item *
+
+L<Remove an alias (unalias)|Devel::Trepan::CmdProcessor::Command::Unalias>
 
 =back
 
@@ -516,18 +536,28 @@ support via L<B::Concise>
 
 =head2 Recommended Modules
 
+I<Devel::Trepan> will detect automatically whether any of these
+modules are present. If so, additional capabilies are available.
+
 =over 4
 
 =item *
 
-L<Devel::Callsite> allows you to see the exact location of where you are stopped.
+L<Devel::Callsite> allows you to see the exact location of where you
+are stopped. Location reporting changes by default to show the current
+OP address, when this module is present.
 
 =item *
-L<Enbugger> allows you to enter the debugger via a direct call in source code
+L<Enbugger> allows you to enter the debugger without previously having your program compiled for debugging.
 
 =item *
 
-L<Eval::WithLexicals> allows you to inspect I<my> and I<our> variables up the call stack
+L<Eval::WithLexicals> allows you to inspect I<my> and I<our> variables
+up the call stack. Commands L<C<info variables
+my>|Devel::Trepan::CmdProcessor::Command::Info::Variables::My> and
+L<C<info variables
+our>|Devel::Trepan::CmdProcessor::Command::Info::Variables::Our> become
+available when this module is detected.
 
 =item *
 
@@ -539,11 +569,11 @@ L<Data::Dumper::Perltidy> allows one to Use I<Data::Dumper::Perltidy> to format 
 
 =item *
 
-L<Term::ReadLine::Perl5> allows editing on the command line, command completion, and saving command history. This Module is preferred over L<Term::ReadLine::Perl> or L<Term::ReadLine::Gnu>.
+L<Term::ReadLine::Perl5> allows editing on the command line, command completion, and saving command history. This Module is preferred over I<Term::ReadLine::Perl> or I<Term::ReadLine::Gnu>.
 
 =item *
 
-L<Term::ReadLine::Gnu> allows editing of the command line and command completion
+L<Term::ReadLine::Gnu> allows editing of the command line and command completion. Command completion isn't as good here as with I<Term::ReadLine::Perl5>.
 
 =back
 
@@ -562,14 +592,21 @@ L<Devel::ebug>
 
 =item *
 
-L<DB> is a somewhat abandoned debugger API interface. I've tried to use some
-parts of this along with C<perl5db>.
+L<DB> is a somewhat abandoned debugger API interface. I've tried to
+use some parts of this along with C<perl5db>.
+
+=item *
+
+L<Devel::Hdb>
+
+A Perl debugger that uses HTML and javascript to implement the
+GUI. The front end talks via a REST service.
 
 =back
 
 =head1 COPYRIGHT
 
-Copyright (C) 2011, 2012 Rocky Bernstein <rocky@cpan.org>
+Copyright (C) 2011, 2012, 2014 Rocky Bernstein <rocky@cpan.org>
 
 This program is distributed WITHOUT ANY WARRANTY, including but not
 limited to the implied warranties of merchantability or fitness for a
