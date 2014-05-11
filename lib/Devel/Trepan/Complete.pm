@@ -6,9 +6,11 @@ use Exporter;
 package Devel::Trepan::Complete;
 
 use vars qw(@ISA @EXPORT); @ISA = qw(Exporter);
-@EXPORT = qw(complete_token complete_token_with_next
-             next_token signal_complete
-             complete_token_filtered_with_next);
+@EXPORT = qw(
+    complete_builtins complete_subs complete_packages
+    complete_token complete_token_with_next
+    next_token signal_complete
+    complete_token_filtered_with_next);
 
 use constant BUILTIN_CONST => qw(__FILE__ __LINE__ __PACKAGE__);
 use constant BUILTIN_FNS => qw(
@@ -197,7 +199,7 @@ sub signal_complete($) {
     complete_token(\@signal_complete_completions, $prefix);
 }
 
-sub complete_builtin($)
+sub complete_builtins($)
 {
     my ($prefix) = @_;
     my @builtin_fns = BUILTIN_FNS;
@@ -209,7 +211,7 @@ sub complete_builtin($)
     }
 }
 
-sub complete_function($)
+sub complete_subs($)
 {
     my ($prefix) = @_;
     no warnings 'once';
@@ -234,6 +236,22 @@ sub complete_function($)
 	}
     }
     return sort @functions;
+}
+
+sub complete_packages($)
+{
+    my ($prefix) = @_;
+    my %pkgs;
+    no warnings 'once';
+    foreach my $function (keys %DB::sub) {
+	my @parts = split('::', $function);
+	if (scalar @parts > 1) {
+	    pop(@parts);
+	    my $pkg = join('::', @parts);
+	    $pkgs{$pkg} = 1 if $pkg =~ /^$prefix/;
+	}
+    }
+    return sort keys %pkgs;
 }
 
 unless (caller) {
@@ -267,16 +285,19 @@ unless (caller) {
     print join(', ', signal_complete('C')), "\n";
 
     foreach my $prefix (qw(CORE::len len db foo CORE::foo)) {
-	printf("complete_builtin($prefix) => %s\n",
-           join(', ', complete_builtin($prefix)));
+	printf("complete_subs($prefix) => %s\n",
+           join(', ', complete_subs($prefix)));
     }
 
     $DB::package = 'main';
     %DB::sub = qw(main::gcd 1);
     foreach my $prefix (qw(end CORE::end gcd main::gcd foo CO __FI)) {
-	printf("complete_function($prefix) => %s\n",
-           join(', ', complete_function($prefix)));
+	printf("complete_subs($prefix) => %s\n",
+           join(', ', complete_subs($prefix)));
     }
+    my $prefix = 'mai';
+    printf("complete_packages($prefix) => %s\n",
+           join(', ', complete_packages($prefix)));
 
     # FIXME: We don't handle ~ expansion right now.
     #  print "List of filenames expanded from ~\n";

@@ -84,7 +84,7 @@ sub complete($$$$$)
             $_last_end += length($_last_token);
         }
 	if (scalar @_last_return == 0 && $self->{settings}{autoeval}) {
-	    return Devel::Trepan::Complete::complete_function($stripped_line);
+	    return Devel::Trepan::Complete::complete_subs($stripped_line);
 	}
         $self->{completions} = \@_last_return;
         return @_last_return;
@@ -109,7 +109,7 @@ sub complete($$$$$)
 
     $self->{completions} = \@_last_return;
     if (scalar @_last_return == 0 && $self->{settings}{autoeval}) {
-	return Devel::Trepan::Complete::complete_function($stripped_line);
+	return Devel::Trepan::Complete::complete_subs($stripped_line);
     }
 
     return @_last_return;
@@ -172,6 +172,11 @@ sub next_complete($$$$$)
     }
 }
 
+sub filename_complete($$) {
+    my ($self, $prefix) = @_;
+    $self->{interfaces}[-1]->rl_filename_list($prefix);
+}
+
 unless (caller) {
     require Devel::Trepan::CmdProcessor;
     my $cmdproc = Devel::Trepan::CmdProcessor->new;
@@ -192,6 +197,9 @@ unless (caller) {
     my @c = complete_it($cmdproc, "set ");
     @c = complete_it($cmdproc, "help set base");
     @c = complete_it($cmdproc, "set basename on ");
+    my $str = './';
+    @c = $cmdproc->filename_complete($str);
+    printf "complete('$str') => %s\n", join(', ', @c);
 }
 
 1;

@@ -18,7 +18,7 @@ use Exporter;
 
 use constant PROGRAM => 'trepan.pl';
 use version;
-$VERSION='0.55'; # To fool CPAN indexer. Is <= real version
+$VERSION='0.56'; # To fool CPAN indexer. Is <= real version
 $VERSION = $Devel::Trepan::Version::VERSION;
 $PROGRAM = PROGRAM;
 
@@ -160,11 +160,13 @@ Or for those who prefer the traditional Perlish way:
 
 The problem with the above "perlish" approach is that you get the
 default trepan options. If you want to set any of these, you'll have
-to set them either with a debugger command (possibly via startup
-script, e.g. *~/.treplrc` or via environment variable
-I<TREPANPL_OPTS>. To see the environement variables, run I<trepan.pl>
-with the C<--verbose> option or run `eval $ENV{TREPANPL_OPTS} inside
-of the debugger.
+to set them either with a debugger command, possibly via startup
+script, e.g. I<~/.treplrc> or via environment variable
+I<TREPANPL_OPTS>.
+
+To see the environement variables, run I<trepan.pl> with the
+C<--verbose> option or run C<eval $ENV{TREPANPL_OPTS}> inside of the
+debugger.
 
 For out-of-process (and possibly out-of server) debugging:
 
@@ -192,8 +194,8 @@ Or if you just want POSIX-shell-like C<set -x> line tracing:
 
     $ trepan.pl -x -- perl-program [perl-program-opts]
 
-Inside the debugger tracing is turned on using the command C<set trace print>.
-There is extensive help from the C<help> command.
+Inside the debugger tracing is turned on using the command C<set trace
+print>.  There is extensive help from the C<help> command.
 
 =head2 Command Categories
 
@@ -220,6 +222,10 @@ L</Commands involving running the program>
 =item *
 
 L</Examining the call stack>
+
+=item *
+
+L</Status inquiries>
 
 =item *
 
@@ -409,6 +415,21 @@ L<Move to a more recent frame (up)|Devel::Trepan::CmdProcessor::Command::Up>
 
 =back
 
+=head3 Status inquiries
+
+=over
+
+=item *
+
+L<Information for showing things about the program being debugged
+(info)|Devel::Trepan::CmdProcessor::Command::Info>
+
+=item *
+
+L<Showing things about the debugger (show)|Devel::Trepan::CmdProcessor::Command::Show>
+
+=back
+
 =head3 Support facilities
 
 =over
@@ -419,7 +440,11 @@ L<Define an alias (alias)|Devel::Trepan::CmdProcessor::Command::Alias>
 
 =item *
 
-L<List the completions for the rest of the line|Devel::Trepan::CmdProcessor::Command::Complete>
+L<List the completions for the rest of the line (complete)|Devel::Trepan::CmdProcessor::Command::Complete>
+
+=item *
+
+L<Loading or reloading Debugger or Perlish things (load)|Devel::Trepan::CmdProcessor::Command::Load>
 
 =item *
 
@@ -435,15 +460,7 @@ L<Run debugger commands from a file (source)|Devel::Trepan::CmdProcessor::Comman
 
 =item *
 
-L<Load or Reload something Perlish|Devel::Trepan::CmdProcessor::Command::Load>
-
-=item *
-
-L<Modify parts of the Debugger Environment|Devel::Trepan::CmdProcessor::Command::Set>
-
-=item *
-
-L<Show parts of the Debugger Environment|Devel::Trepan::CmdProcessor::Command::Show>
+L<Modify parts of the Debugger Environment (set)|Devel::Trepan::CmdProcessor::Command::Set>
 
 =item *
 

@@ -42,7 +42,7 @@ our $MIN_ABBREV = length('fu');
 sub complete($$)
 {
     my ($self, $prefix) = @_;
-    Devel::Trepan::Complete::complete_function($prefix);
+    Devel::Trepan::Complete::complete_subs($prefix);
 }
 
 sub run($$)
@@ -55,11 +55,11 @@ sub run($$)
         $regexp = $args->[2];
     }
 
-    my @functions = sort keys %DB::sub;
+    my @functions = keys %DB::sub;
     @functions = grep /$regexp/, @functions if defined $regexp;
     if (scalar @functions) {
         my %FILES = ();
-        for my $function (@functions) {
+        for my $function (sort @functions) {
             my $file_range = $DB::sub{$function};
             if ($file_range =~ /^(.+):(\d+-\d+)/) {
                 my ($filename, $range) = ($1, $2);
@@ -78,7 +78,7 @@ sub run($$)
             }
         }
     } else {
-	my @fns = Devel::Trepan::Complete::complete_builtin($regexp);
+	my @fns = Devel::Trepan::Complete::complete_builtins($regexp);
 	if (@fns) {
             for my $entry (@fns) {
                 $proc->msg($entry . ' is a built-in function');
