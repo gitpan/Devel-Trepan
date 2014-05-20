@@ -68,7 +68,10 @@ my $builder = Module::Build->new(
         'Devel::Trepan::Shell'              => '1.4.1',
         'Eval::WithLexicals'                => 0,
         'Pod::Text::Color'                  => '2.06',
-        'Term::ReadLine::Perl5'             => '1.21',
+
+        # 1.33 has tilde completion, and removes unhelpful
+        # filename suffix classifiers, @, =, and *
+        'Term::ReadLine::Perl5'             => '1.33',
     },
 
     requires => {

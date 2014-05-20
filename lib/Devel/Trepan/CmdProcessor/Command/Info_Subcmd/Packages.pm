@@ -186,7 +186,7 @@ sub run($$)
 	    for my $pkg (sort @pkgs) {
 		if ($options->{subs}) {
 		    my $subs = $pkgs{$pkg}->[1];
-		    my @subs = sort keys $subs;
+		    my @subs = sort keys %$subs;
 		    $proc->section($pkg);
 		    if (scalar @subs) {
 			my $msg = columnize_pkgs($proc, \@subs);
@@ -197,7 +197,7 @@ sub run($$)
 		}
 		if ($options->{files}) {
 		    my $filename = $pkgs{$pkg}->[0];
-		    my @files = sort keys $filename;
+		    my @files = sort keys %$filename;
 		    if (scalar @files) {
 			my $file_str = @files == 1 ? 'file' : 'files';
 			my $msg = sprintf("%s is in %s %s", $pkg, $file_str,
@@ -219,8 +219,17 @@ sub run($$)
 }
 
 unless (caller) {
-    require Devel::Trepan;
     # Demo it.
+    require Devel::Trepan::CmdProcessor::Mock;
+    my $proc = Devel::Trepan::CmdProcessor->new(undef, 'bogus');
+    my $cmd = __PACKAGE__->new($proc);
+    $cmd->{proc} = $proc;
+    my $frame_ary = Devel::Trepan::CmdProcessor::Mock::create_frame();
+    $proc->frame_setup($frame_ary);
+    $proc->{settings}{highlight} = 0;
+    %DB::sub = qw(main::gcd 1);
+    $cmd->run([]);
+
     # require_relative '../../mock'
     # my($dbgr, $parent_cmd) = MockDebugger::setup('show');
     # $cmd = __PACKAGE__->new(parent_cmd);
